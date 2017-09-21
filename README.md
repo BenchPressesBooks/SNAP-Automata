@@ -15,27 +15,27 @@ More detail is provided below, but a majority of this system is driven using WeM
 ### Architecture
 
 Server Infrastructure:
-	Centos7 minimal install details
-	- Only access in or out of IoT VLAN, only on one port
-	- Remote syslogging to Splunk for diagnostics and historical device usage
-	- NTP from core switch
+Centos7 minimal install details
+- Only access in or out of IoT VLAN, only on one port
+- Remote syslogging to Splunk for diagnostics and historical device usage
+- NTP from core switch
 	
-	Above server virtualized using ESXI (Minimal specs due to nature of device)
-	- i7 Processor
-	- Gigabit ethernet connnection
-	- 2GB RAM
-	- 15GB disk space
+Above server virtualized using ESXI (Minimal specs due to nature of device)
+- i7 Processor
+- Gigabit ethernet connnection
+- 2GB RAM
+- 15GB disk space
 
 Network Infrastructure:
-	- IoT VLAN isolates all devices, available via wireless and wired networks
-	- Firewall configured to block all inbound, outbound, and cross-device communication 
-	- Only communication allowed directly through MQTT broker
+- IoT VLAN isolates all devices, available via wireless and wired networks
+- Firewall configured to block all inbound, outbound, and cross-device communication 
+- Only communication allowed directly through MQTT broker
 	
 Software Infrastructure:
-	Mobile
-	- MQTT Dash for Android
-	- IoT endpoints using MQTT library for control and 
-	
+- MQTT Dash for Android
+- IoT endpoints using MQTT library for control and 
+- HomeAssistant as automation and interface
+- Mosquitto as MWTT broker	
 	
 	
 ## Automation
