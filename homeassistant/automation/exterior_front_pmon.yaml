@@ -1,0 +1,8 @@
+alias: 'Turn on front path lights at sunset'
+trigger:
+  platform: sun
+  event: sunset
+action:
+  service: light.turn_on
+  entity_id: light.plfront
+

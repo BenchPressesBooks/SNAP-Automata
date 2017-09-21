@@ -1,0 +1,8 @@
+alias: 'Turn off front path lights at 2300 hours'
+trigger:
+  platform: time
+  at: '23:00:00'
+action:
+  service: light.turn_off
+  entity_id: light.plfront
+

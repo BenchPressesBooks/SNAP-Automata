@@ -1,0 +1,16 @@
+- platform: darksky
+  api_key: <your_api_key>
+  monitored_conditions:
+    - summary
+    - precip_probability
+    - temperature
+    - wind_speed
+    - cloud_cover
+    - humidity
+    - temperature_min
+    - temperature_max
+
+- platform: time_date
+  display_options:
+    - 'date'
+    - 'time'

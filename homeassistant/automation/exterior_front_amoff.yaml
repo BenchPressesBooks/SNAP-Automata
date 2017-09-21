@@ -1,0 +1,7 @@
+alias: 'Turn off front path lights at sunrise'
+trigger:
+  platform: sun
+  event: sunrise
+action:
+  service: light.turn_off
+  entity_id: light.plfront

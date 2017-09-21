@@ -1,0 +1,43 @@
+default_view:
+  view: yes
+  entities:
+    - group.datetime
+    - group.weather
+    - group.exterior
+
+datetime:
+  name: 'Clock'
+  entities:
+    - sensor.date
+    - sensor.time
+
+exterior:
+  name: 'Exterior'
+  entities:
+    - light.plfront
+    - light.plside
+    - light.plrear
+    - light.porchlight
+
+livingroom:
+  name: 'Living Room'
+  entities:
+    - light.lrsidelamp
+    - light.lrdisplaycase
+
+office:
+  name: 'Office'
+  entities:
+    - light.officedisplaycase
+
+weather:
+  name: 'Weather'
+  entities:
+    - sensor.dark_sky_summary
+    - sensor.dark_sky_temperature
+    - sensor.dark_sky_precip_probability
+    - sensor.dark_sky_wind_speed
+    - sensor.dark_sky_cloud_cover
+    - sensor.dark_sky_humidity
+    - sensor.dark_sky_temperature_min
+    - sensor.dark_sky_temperature_max

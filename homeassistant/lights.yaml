@@ -1,0 +1,45 @@
+# Zone 1 Front Path Light
+- platform: mqtt
+  name: 'plfront'
+  state_topic: 'exterior/plfront/status'
+  command_topic: 'exterior/plfront/switch'
+  optimistic: false
+
+# Zone 2 Side Path Light
+- platform: mqtt
+  name: 'plside'
+  state_topic: 'exterior/plside/status'
+  command_topic: 'exterior/plside/switch'
+  optimistic: false
+
+# Zone 3 Rear Pond Lights
+- platform: mqtt
+  name: 'plrear'
+  state_topic: 'exterior/plrear/status'
+  command_topic: 'exterior/plrear/switch'
+  optimistic: false
+
+# Back Porch Lights
+- platform: mqtt
+  name: 'porchlights'
+  state_topic: 'exterior/porchlights/status'
+  command_topic: 'exterior/porchlights/switch'
+  optimistic: false
+
+# Living Room Side Lamp
+- platform: mqtt
+  name: 'lrtablelamp'
+  state_topic: 'firstfloor/lrsidelamp/status'
+  command_topic: 'firstfloor/lrsidelamp/switch'
+
+# Living Room Display Case
+- platform: mqtt
+  name: 'lrdisplaycase'
+  state_topic: 'firstfloor/lrdisplaycase1/status'
+  command_topic: 'firstfloor/lrdisplaycase1/switch'
+
+# Office Display Case
+- platform: mqtt
+  name: 'officedisplaycase'
+  state_topic: 'secondfloor/officedisplaycase/status'
+  command_topic: 'secondfloor/officedisplaycase/switch'

@@ -1,0 +1,21 @@
+# lights
+light.plfront:
+  friendly_name: 'Path Light -  Zone 1 Front'
+
+light.plside:
+  friendly_name: 'Path Lights - Zone 2 Side'
+
+light.plrear:
+  friendly_name: 'Pond Lights - Zone 3 Rear'
+
+light.porchlights:
+  friendly_name: 'Porch Ambiance Lights'
+
+light.lrsidelamp:
+  friendly_name: 'Living Room Side Lamp'
+
+light.lrdisplaycase:
+  friendly_name: 'Living Room Display Case'
+
+light.officedisplaycase:
+  friendly_name: 'Office Display Case'
