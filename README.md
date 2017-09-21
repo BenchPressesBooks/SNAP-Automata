@@ -104,7 +104,7 @@ sudo -u homeassistant -H /srv/homeassistant/bin/hass
 In order to make Home Assistant run on boot, we need to create a service. Luckily this already exists! Just download the service file from my repo above, or run the following command:
 
 ```
-sudo wget <MyGitHubURL> -O /etc/systemd/system/home-assistant@homeassistant.service
+sudo wget https://raw.githubusercontent.com/BenchPressesBooks/SNAP-Automata/master/services/home-assistant%40homeassistant.service -O /etc/systemd/system/home-assistant@homeassistant.service
 ```
 
 To make the daemon aware of the new configuration, reload systemd
