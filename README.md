@@ -160,8 +160,10 @@ To configure publishing and subscribing, create an `aclfile`
 sudo touch /etc/mosquitto/conf.d/aclfile
 ```
 
-NOTE: Using the batch mode above for mosquitto_passwd will make the password available in your bashhistory file. Heed caution when using this method. I used `ha` as my main user for HomeAssistnat to communicate with Mosquitto. This will be visible in my ACLFILE in the repo above.
-To link Home Assistant with the Mosquitto broker, the `configuration.yaml` will need to have the lines below added
+NOTE: Using the batch mode above for mosquitto_passwd will make the password available in your bashhistory file. Heed caution when using this method.
+
+I used `ha` as my main user for HomeAssistnat to communicate with Mosquitto. This will be visible in my ACLFILE in the repo above.
+To link Home Assistant with the Mosquitto broker, `configuration.yaml` will need to have the lines below added
 
 ```yaml
 mqtt:
