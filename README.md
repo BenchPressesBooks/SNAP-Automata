@@ -1,13 +1,13 @@
 # SNAP-Automata
 
 ## Table of contents
-1. [Introduction](#intro)
-2. [Automation](#automata)
-3. [Controller Configuration](#control)
-4. [Home Assistant Additions](#hassadd)
+1. [Introduction](#introduction)
+2. [Automation](#automation)
+3. [Controller Configuration](#controller-configuration)
+4. [Home Assistant Additions](#home-assistant-additions)
 
 
-## Introduction (#intro)
+## Introduction
 I have always wanted a home automation system that is affordable and completely home-brew so I began on this journey in August 2017. This system was designed with cost minimization, energy efficiency, convenience, and ease of use for me and visitors in mind.
 
 More detail is provided below, but a majority of this system is driven using WeMos D1 Pro ESP8266 devices, Arduino Uno devices, HomeAssistant and Mosquitto. This setup is completely free with the exception of the hardware. I will add details outlining the products I used in a future revision of this readme.
@@ -38,7 +38,7 @@ Software Infrastructure:
 - Mosquitto as MWTT broker	
 	
 	
-## Automation (#automata)
+## Automation
 For the time being only lighting has been implemented but I eventually plan to incorporate mechanical devices and sensors.
 
 Rules:
@@ -50,7 +50,7 @@ Rules:
 - First floor side lamp follows schedule of front path lights
 - Display cases are triggered manually and will stay lit for two hours. I will eventually turn these into presence devices
 
-## Controller Configuration (#control)
+## Controller Configuration
 ### Home Assistant
 The minimal install of Centos doesn't come with the packages we need to run HomeAssistant, so our first step will be getting those installed.
 
@@ -178,5 +178,5 @@ The configuration file for Mosquitto is located at `/etc/mosquitto/conf.d/mosqui
 The log file is located at `/var/log/mosquitto/mosquitto.log`
 
 
-## Home Assistant Additions (#hassadd)
+## Home Assistant Additions
 To start with this project, I decided to include DarkSky as a weather monitor. You will have to register at their website to get an API key. Once you receive that the sensor can be added to the sensors.yaml file. You will find mine in the configuration directory of the repo. I may eventually add more sensors to this project, but for the time being I am focusing on hardware design and cost-cutting.
