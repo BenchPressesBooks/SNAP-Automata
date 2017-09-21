@@ -8,15 +8,15 @@
 
 
 ## Introduction
-I have always wanted a home automation system that is affordable and completely home-brew so I began on this journey in August 2017. This system was designed system with cost minimization, energy efficiency, convenience, and ease of use for me and visitors in mind.
+I have always wanted a home automation system that is affordable and completely home-brew so I began on this journey in August 2017. This system was designed with cost minimization, energy efficiency, convenience, and ease of use for me and visitors in mind.
 
 More detail is provided below, but a majority of this system is driven using WeMos D1 Pro ESP8266 devices, Arduino Uno devices, HomeAssistant and Mosquitto. This setup is completely free with the exception of the hardware. I will add details outlining the products I used in a future revision of this readme.
 
 ### Architecture
 
 Server Infrastructure:
-Centos7 minimal install details
-- Only access in or out of IoT VLAN, only on one port
+- Centos7 (minimal install)
+- Provides the only access in or out of the IoT VLAN
 - Remote syslogging to Splunk for diagnostics and historical device usage
 - NTP from core switch
 	
