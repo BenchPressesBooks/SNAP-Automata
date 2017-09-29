@@ -31,6 +31,10 @@
 *.out
 *.app
 
+# Eagle
+*.b#*
+*.s#*
+
 # Misc
 *.db
 *.log
