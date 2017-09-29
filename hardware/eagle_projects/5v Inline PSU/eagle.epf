@@ -354,7 +354,7 @@ UsedLibrary="C:/Users/braden/Documents/Repositories/SNAP-Automata/hardware/eagle
 
 [Win_1]
 Type="Board Editor"
-Loc="-8 -8 1591 828"
+Loc="0 0 1599 836"
 State=3
 Number=1
 File="5vInlinePSU.brd"
@@ -400,7 +400,7 @@ Layer=1
 
 [Win_2]
 Type="Control Panel"
-Loc="0 0 1599 836"
+Loc="-8 -8 1591 828"
 State=1
 Number=0
 
