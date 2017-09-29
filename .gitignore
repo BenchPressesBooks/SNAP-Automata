@@ -34,6 +34,7 @@
 # Eagle
 *.b#*
 *.s#*
+*.l#*
 
 # Misc
 *.db
