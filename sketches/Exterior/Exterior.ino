@@ -34,17 +34,12 @@
 #include <PubSubClient.h>   // https://github.com/knolleary/pubsubclient (no licence)
 
 #define DEBUG
-//#define TLS
 #define MQTT_VERSION MQTT_VERSION_3_1_1
 
 // MQTT: client ID, broker IP address, port, username & password
-const char*       MQTT_CLIENT_ID    = "exterior";
+const char*       MQTT_CLIENT_ID    = "MQTT-PATHLIGHTCONTROL";
 const char*       MQTT_SERVER_IP    = "<REDACTED>";
-#ifdef TLS
-const uint16_t    MQTT_SERVER_PORT  = 8883;
-#else
 const uint16_t    MQTT_SERVER_PORT  = 1883;
-#endif
 const char*       MQTT_USERNAME     = "exterior";
 const char*       MQTT_PASSWORD     = "<REDACTED>";
 
@@ -77,14 +72,6 @@ const uint8_t     ZONE1_PIN            = 7;
 const uint8_t     ZONE2_PIN            = 6;
 const uint8_t     ZONE3_PIN            = 5;
 
-// TLS: The fingerprint of the MQTT broker certificate (SHA1)
-#ifdef TLS
-// openssl x509 -fingerprint -in  <certificate>.crt
-const char*       CA_FINGERPRINT    = "<REDACTED>";
-// openssl x509 -subject -in  <certificate>.crt
-const char*       CA_SUBJECT        = "<REDACTED>";
-#endif
-
 // Fixed IP address: IP address, IP gateway, subnet, dns
 const IPAddress   IP                (<REDACTED>);
 const IPAddress   IP_GATEWAY        (<REDACTED>);
@@ -92,12 +79,8 @@ const IPAddress   IP_SUBNET         (<REDACTED>);
 const IPAddress   IP_DNS            (<REDACTED>);
 byte mac[] = {<REDACTED>};
 
-// WiFiFlientSecure instead of WiFiClient, for SSL/TLS support
-#ifdef TLS
-EthernetClientSecure  g_ethernetClient;
-#else
+// Ethernet and MQTT client setup
 EthernetClient  g_ethernetClient;
-#endif
 PubSubClient      g_mqttClient(g_ethernetClient);
 
 ///////////////////////////////////////////////////////////////////////////
@@ -253,12 +236,12 @@ void setZone3Status() {
 
 ///////////////////////////////////////////////////////////////////////////
 //
-// Ethernet and TLS
+// Ethernet
 //
 ///////////////////////////////////////////////////////////////////////////
 
 /*
-   Function called to setup the connection to the network
+   Function called to setup the connection to the ethernet network
 */
 void setupEthernet() {
   delay(10);
@@ -277,35 +260,7 @@ void setupEthernet() {
   Serial.print(F("INFO: IP address: "));
   Serial.println(Ethernet.localIP());
 #endif
-
-#ifdef TLS
-  verifyFingerprint();
-#endif
 }
-
-/*
-   Function called to verify the fingerprint of the MQTT server and establish a secure connection
-*/
-#ifdef TLS
-void verifyFingerprint() {
-  if (!g_ethernetClient.connect(MQTT_SERVER_IP, MQTT_SERVER_PORT)) {
-#ifdef DEBUG
-    Serial.println(F("ERROR: The connection failed to the secure MQTT server"));
-#endif
-    return;
-  }
-
-  if (g_ethernetClient.verify(CA_FINGERPRINT, CA_SUBJECT)) {
-#ifdef DEBUG
-    Serial.println(F("INFO: The connection is secure"));
-#endif
-  } else {
-#ifdef DEBUG
-    Serial.println(F("ERROR: The given certificate does't match"));
-#endif
-  }
-}
-#endif
 
 ///////////////////////////////////////////////////////////////////////////
 //
