@@ -53,6 +53,7 @@ const char*       PAYLOAD_OFF       = "OFF";
 // Track current status of the devices
 boolean           g_relay_status                 = false;
 boolean           g_bypass_activated             = false;
+boolean           g_bypass_hold                  = false;
 boolean           g_bypass_type                  = false; // True = switch; False = button
 
 // Buffer configuration used to send/receive data with MQTT
@@ -182,32 +183,32 @@ void callback(char* p_topic, byte* p_payload, unsigned int p_length) {
     Serial.println(p_length);
   #endif
   
-  // Act on the contents of the payload.
-  if (String(TOPIC_RELAY_COMMAND).equals(p_topic)) {
+  // Act on the contents of the payload IF manual bypass isn't triggered for the given event.
+  if (String(TOPIC_RELAY_COMMAND).equals(p_topic) && !g_bypass_hold) {
     // Type juggle the payload from char array to string.
     String payload;
     for (uint8_t i = 0; i < p_length; i++) {
       payload.concat((char)p_payload[i]);
     }
 
-    // Perform payload action IF manual bypass isn't triggered for the given event.
-    if (payload.equals(String(PAYLOAD_ON)) && !g_bypass_hold) {
+    // Perform payload action.
+    if (payload.equals(String(PAYLOAD_ON))) {
       g_relay_status = true;
       setRelayStatus();
       publishRelayStatus();
-    } else if (payload.equals(String(PAYLOAD_OFF)) && !g_bypass_hold) {
+    } else if (payload.equals(String(PAYLOAD_OFF))) {
       g_relay_status = false;
       setRelayStatus();
       publishRelayStatus();
-    } else if (g_bypass_hold) {
-      #ifdef DEBUG
-        Serial.println(F("ALERT: Manual bypass for this action is held. Skipping this action."));
-      #endif
     } else {
       #ifdef DEBUG
         Serial.println(F("ERROR: The payload of the MQTT message is not valid"));
       #endif
     }
+  } else if (g_bypass_hold) {
+    #ifdef DEBUG
+      Serial.println(F("INFO:  Bypass triggered, aborting all requested actions."));
+    #endif
   } else {
     #ifdef DEBUG
       Serial.println(F("INFO:  The received MQTT message was for a topic we did not subscribe to and was not used."));
@@ -243,7 +244,7 @@ void reconnect() {
       // Set the relay to match the value that we have stored.
       setRelayStatus();
 
-      // Publish the status of the relay so bring everything back into sync.
+      // Publish the status of the relay to bring everything back into sync.
       publishRelayStatus();
     } else {
       #ifdef DEBUG
@@ -288,6 +289,10 @@ void g_bypass_activated_actionable(){
       #ifdef DEBUG
         Serial.println("INFO:  Bypass state switched from OFF to ON.");
       #endif
+      // Hold state if switch; prevents MQTT from overriding physical user.
+      if(g_bypass_type) {
+        g_bypass_hold = true;
+      }
       g_relay_status = true;
       setRelayStatus();
       publishRelayStatus();
@@ -295,6 +300,10 @@ void g_bypass_activated_actionable(){
       #ifdef DEBUG
         Serial.println("INFO:  Bypass state switched from ON to OFF");
       #endif
+      // Release state if switch; prevents MQTT from overriding physical user.
+      if(g_bypass_type) {
+        g_bypass_hold = false;
+      }
       g_relay_status = false;
       setRelayStatus();
       publishRelayStatus();
@@ -331,7 +340,7 @@ void setup() {
   // Attach interrupt to avoid missing input.
   if(g_bypass_type) {
     // Switch
-    //attachInterrupt(BYPASS_PIN, g_bypass_activated_interrupt, <FILL_IN>) FILL IN THE STATE CHANGE DIRECTION BEFORE ENABLING
+    attachInterrupt(BYPASS_PIN, g_bypass_activated_interrupt, CHANGE);
   } else {
     // Button
     attachInterrupt(BYPASS_PIN, g_bypass_activated_interrupt, RISING);

@@ -1,114 +1,120 @@
 /*
-  Configuration for Home Assistant:
-    mqtt:
-      broker: <REDACTED>
-      port: 1883
-      client_id: 'ha'
-      username: 'ha'
-      password: '<REDACTED>'
-      
-    light:
-    # Interior: Living Room Side Lamp
-    - platform: mqtt
-      name: 'Living Room Side Lamp'
-      state_topic: 'firstfloor/lrsidelamp/status'
-      command_topic: 'firstfloor/lrsidelamp/switch'
-      optimistic: false
-
-  Sources:
-    - MQTT: File > Examples > PubSubClient > mqtt_esp8266
-    - TLS:  https://io.adafruit.com/blog/security/2016/07/05/adafruit-io-security-esp8266/
-    - OTA:  File > Examples > ArduinoOTA > BasicOTA
-*/
+ * Configuration for Home Assistant:
+ *   light:
+ *   # Interior: Living Room Side Lamp
+ *   - platform: mqtt
+ *     name: 'Living Room Side Lamp'
+ *     state_topic: 'firstfloor/lrsidelamp/status'
+ *     command_topic: 'firstfloor/lrsidelamp/switch'
+ *     optimistic: false
+ */
 
 #include <ESP8266WiFi.h>    // https://github.com/esp8266/Arduino (GNUv2.1 licence)
 #include <PubSubClient.h>   // https://github.com/knolleary/pubsubclient (no licence)
+#include <ArduinoOTA.h>
+
 
 #define DEBUG
 #define MQTT_VERSION MQTT_VERSION_3_1_1
 
-// Wi-Fi: Access Point SSID and password
+// ESP8266: SSID and password of desired network
 const char*       AP_SSID           = "<REDACTED>";
 const char*       AP_PASSWORD       = "<REDACTED>";
 
-// MQTT: client ID, broker IP address, port, username & password
-const char*       MQTT_CLIENT_ID    = "MQTT-LRST1";
-const char*       MQTT_SERVER_IP    = "<REDACTED>";
-const uint16_t    MQTT_SERVER_PORT  = 1883;
-const char*       MQTT_USERNAME     = "interior";
-const char*       MQTT_PASSWORD     = "<REDACTED>";
-
-// MQTT: topics
-
-// Living Room Side Lamp
-const char*       TOPIC_RELAY_STATUS             = "firstfloor/lrsidelamp/status";
-const char*       TOPIC_RELAY_COMMAND            = "firstfloor/lrsidelamp/switch";
-
-// MQTT: payloads
-// Lamps : "ON"/"OFF"
-const char*       PAYLOAD_ON            = "ON";
-const char*       PAYLOAD_OFF           = "OFF";
-
-boolean           g_relay_status       = false;
-
-// buffer used to send/receive data with MQTT
-const uint8_t     MSG_BUFFER_SIZE       = 20;
-char              g_msg_buffer[MSG_BUFFER_SIZE];
-
-const uint8_t     RELAY_PIN       = D1;
-
-// Fixed IP address: IP address, IP gateway, subnet, dns
+// Device network details: IP address, IP gateway, subnet, dns.
+// NOTE: WiFi does not support configurable MAC
 const IPAddress   IP                (<REDACTED>);
 const IPAddress   IP_GATEWAY        (<REDACTED>);
 const IPAddress   IP_SUBNET         (<REDACTED>);
 const IPAddress   IP_DNS            (<REDACTED>);
 
-// WiFi and MQTT client setup
-WiFiClient  g_wifiClient;
+// MQTT: client ID, broker IP, port, username & password
+const char*       MQTT_CLIENT_ID    = "<REDACTED>";
+const char*       MQTT_SERVER_IP    = "<REDACTED>";
+const uint16_t    MQTT_SERVER_PORT  = 1883;
+const char*       MQTT_USERNAME     = "<REDACTED>";
+const char*       MQTT_PASSWORD     = "<REDACTED>";
+
+// OTA: hostname & password
+const char*       OTA_HOSTNAME      = MQTT_CLIENT_ID;
+const char*       OTA_PASSWORD      = "<REDACTED>";
+const uint16_t    OTA_PORT          = 8266;
+
+// MQTT: topics
+// Interior: Living Room Side Lamp
+const char*       TOPIC_RELAY_STATUS             = "firstfloor/lrsidelamp/status";
+const char*       TOPIC_RELAY_COMMAND            = "firstfloor/lrsidelamp/switch";
+
+// MQTT: Expected Payloads
+// Lamps : "ON"/"OFF"
+const char*       PAYLOAD_ON        = "ON";
+const char*       PAYLOAD_OFF       = "OFF";
+
+// Track current status of the devices
+boolean           g_relay_status                 = false;
+boolean           g_bypass_activated             = false;
+boolean           g_bypass_hold                  = false;
+boolean           g_bypass_type                  = true; // True = switch; False = button
+
+// Buffer configuration used to send/receive data with MQTT
+const uint8_t     MSG_BUFFER_SIZE   = 20;
+char              g_msg_buffer[MSG_BUFFER_SIZE];
+
+// Pin configuration
+const uint8_t     RELAY_PIN         = D1;
+const uint8_t     BYPASS_PIN        = D2;
+
+// WiFi and MQTT client object initialization
+WiFiClient        g_wifiClient;
 PubSubClient      g_mqttClient(g_wifiClient);
 
-///////////////////////////////////////////////////////////////////////////
+
+//############################################################################
 //
-// RELAY
+//                          CONTROL AND STATUS 
 //
-///////////////////////////////////////////////////////////////////////////
+//############################################################################
 
 /*
-  Function called to publish the status of the relay
-*/
+ * Publishes the status of the relay
+ *   INPUT:  NA
+ *   RETURN: NA
+ */
 void publishRelayStatus() {
   if (g_relay_status) {
     if (g_mqttClient.publish(TOPIC_RELAY_STATUS, PAYLOAD_ON, true)) {
-#ifdef DEBUG
-      Serial.print(F("INFO: MQTT message publish succeeded. Topic: "));
-      Serial.print(TOPIC_RELAY_STATUS);
-      Serial.print(F(". Payload: "));
-      Serial.println(PAYLOAD_ON);
-#endif
+      #ifdef DEBUG
+        Serial.print(F("INFO:  MQTT message publish succeeded.\n       Topic: "));
+        Serial.println(TOPIC_RELAY_STATUS);
+        Serial.print(F("       Payload: "));
+        Serial.println(PAYLOAD_ON);
+      #endif
     } else {
-#ifdef DEBUG
-      Serial.println(F("ERROR: MQTT message publish failed, either connection lost, or message too large"));
-#endif
+      #ifdef DEBUG
+            Serial.println(F("ERROR: MQTT message publish failed, either connection lost, or message too large"));
+      #endif
     }
   } else {
     if (g_mqttClient.publish(TOPIC_RELAY_STATUS, PAYLOAD_OFF, true)) {
-#ifdef DEBUG
-      Serial.print(F("INFO: MQTT message publish succeeded. Topic: "));
-      Serial.print(TOPIC_RELAY_STATUS);
-      Serial.print(F(". Payload: "));
-      Serial.println(PAYLOAD_OFF);
-#endif
+      #ifdef DEBUG
+        Serial.print(F("INFO:  MQTT message publish succeeded.\n       Topic: "));
+        Serial.println(TOPIC_RELAY_STATUS);
+        Serial.print(F("       Payload: "));
+        Serial.println(PAYLOAD_OFF);
+      #endif
     } else {
-#ifdef DEBUG
-      Serial.println(F("ERROR: MQTT message publish failed, either connection lost, or message too large"));
-#endif
+      #ifdef DEBUG
+        Serial.println(F("ERROR: MQTT message publish failed, either connection lost, or message too large"));
+      #endif
     }
   }
 }
 
 /*
-  Function called to switch the status of the relay
-*/
+ * Switches the state of the relay
+ *   INPUT:  NA
+ *   RETURN: NA
+ */
 void setRelayStatus() {
   if (g_relay_status) {
     digitalWrite(RELAY_PIN, HIGH);
@@ -117,68 +123,75 @@ void setRelayStatus() {
   }
 }
 
-///////////////////////////////////////////////////////////////////////////
+
+//############################################################################
 //
-// WIFI
+//                          WIFI CONFIGURATION
 //
-///////////////////////////////////////////////////////////////////////////
+//############################################################################
 
 /*
-   Function called to setup the connection to the Wi-Fi Access Point
+ * Set up the connection to the Access Point
+ *   INPUT:  NA
+ *   RETURN: NA
 */
 void setupWifi() {
   delay(10);
-  // attempt to connect to the Wi-Fi AP
-  WiFi.mode(WIFI_STA);
+  WiFi.mode(WIFI_STA); // Station mode. This is a client.
   WiFi.begin(AP_SSID, AP_PASSWORD);
-  // define the fixed IP address
-  WiFi.config(IP, IP_GATEWAY, IP_SUBNET, IP_DNS);
+  WiFi.config(IP, IP_GATEWAY, IP_SUBNET, IP_DNS); // MAC address configuration only supported for ethernet devices.
 
+  // Hold until wireless connection is up and running.
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
   }
 
-#ifdef DEBUG
-  Serial.println(F("INFO: Client is now connected to the Wi-Fi AP"));
-  Serial.print(F("INFO: IP address: "));
-  Serial.println(WiFi.localIP());
-  Serial.print("INFO:MAC Address:");
-  Serial.println(WiFi.macAddress());
-#endif
+  #ifdef DEBUG
+    Serial.println(F("INFO:  Client is now connected to the wireless network!"));
+    Serial.print(F("       IP address:  "));
+    Serial.println(WiFi.localIP());
+    Serial.print(F("       MAC Address: "));
+    Serial.println(WiFi.macAddress());
+  #endif
 }
 
-///////////////////////////////////////////////////////////////////////////
+
+//############################################################################
 //
-// MQTT
+//                                MQTT
 //
-///////////////////////////////////////////////////////////////////////////
+//############################################################################
 
 /*
-   Function called when a MQTT message arrived
-   @param p_topic   The topic of the MQTT message
-   @param p_payload The payload of the MQTT message
-   @param p_length  The length of the payload
-*/
+ * Function called when a MQTT message arrives
+ *   INPUT:  Charanter array 'p_topic' is the topic of the MQTT message
+ *           Byte array 'p_payload' is the payload of the MQTT message
+ *           Integer 'p_length' is the expectedlength of the payload
+ *   RETURN: NA
+ */
 void callback(char* p_topic, byte* p_payload, unsigned int p_length) {
-#ifdef DEBUG
-  Serial.println(F("INFO: A new MQTT message arrived"));
-  Serial.print(F("INFO: Topic: "));
-  Serial.println(p_topic);
-  Serial.print(F("INFO: Payload: "));
-  for (int i = 0; i < p_length; i++) {
-    Serial.print((char)p_payload[i]);
-  }
-  Serial.println();
-  Serial.print(F("INFO: Length: "));
-  Serial.println(p_length);
-#endif
-  // handle the MQTT topic of the received message
-  if (String(TOPIC_RELAY_COMMAND).equals(p_topic)) {
-    // concat the payload into a string
+  #ifdef DEBUG
+    Serial.println(F("INFO:  A new MQTT message has arrived"));
+    Serial.print(F("       Topic:   "));
+    Serial.println(p_topic);
+    Serial.print(F("       Payload: "));
+    for (int i = 0; i < p_length; i++) {
+      Serial.print((char)p_payload[i]);
+    }
+    Serial.println();
+    Serial.print(F("       Length:  "));
+    Serial.println(p_length);
+  #endif
+  
+  // Act on the contents of the payload IF manual bypass isn't triggered for the given event.
+  if (String(TOPIC_RELAY_COMMAND).equals(p_topic) && !g_bypass_hold) {
+    // Type juggle the payload from char array to string.
     String payload;
     for (uint8_t i = 0; i < p_length; i++) {
       payload.concat((char)p_payload[i]);
     }
+
+    // Perform payload action.
     if (payload.equals(String(PAYLOAD_ON))) {
       g_relay_status = true;
       setRelayStatus();
@@ -188,96 +201,210 @@ void callback(char* p_topic, byte* p_payload, unsigned int p_length) {
       setRelayStatus();
       publishRelayStatus();
     } else {
-#ifdef DEBUG
-      Serial.println(F("ERROR: The payload of the MQTT message is not valid"));
-#endif
+      #ifdef DEBUG
+        Serial.println(F("ERROR: The payload of the MQTT message is not valid"));
+      #endif
     }
+  } else if (g_bypass_hold) {
+    #ifdef DEBUG
+      Serial.println(F("INFO:  Bypass triggered, aborting all requested actions."));
+    #endif
   } else {
-    // do nothing.....
-#ifdef DEBUG
-    Serial.println(F("INFO: The received MQTT message was not used"));
-#endif
+    #ifdef DEBUG
+      Serial.println(F("INFO:  The received MQTT message was for a topic we did not subscribe to and was not used."));
+    #endif
   }
 }
 
 /*
-   Function called to reconnect the client to the MQTT broker and publish/subscribe to/from some MQTT topics
-*/
+ * Function called to reconnect the client to the MQTT broker and publish/subscribe to/from some MQTT topics
+ *   INPUT:  NA
+ *   Return: NA
+ */
 void reconnect() {
   while (!g_mqttClient.connected()) {
     if (g_mqttClient.connect(MQTT_CLIENT_ID, MQTT_USERNAME, MQTT_PASSWORD)) {
-#ifdef DEBUG
-      Serial.println(F("INFO: The client is successfully connected to the MQTT broker"));
-#endif
+      #ifdef DEBUG
+        Serial.println(F("INFO:  The client is successfully connected to the MQTT broker"));
+      #endif
 
-      // subscribe to the relay command topic
+      // Subscribe to the command topic.
       if (g_mqttClient.subscribe(TOPIC_RELAY_COMMAND)) {
-#ifdef DEBUG
-        Serial.print(F("INFO: Sending the MQTT subscribe succeeded. Topic: "));
-        Serial.println(TOPIC_RELAY_COMMAND);
-#endif
+        #ifdef DEBUG
+          Serial.print(F("INFO:  Sending the MQTT subscribe succeeded.\n       Topic: "));
+          Serial.println(TOPIC_RELAY_COMMAND);
+        #endif
       } else {
-#ifdef DEBUG
-        Serial.print(F("ERROR: Sending the MQTT subscribe failed. Topic: "));
-        Serial.println(TOPIC_RELAY_COMMAND);
-#endif
+        #ifdef DEBUG
+          Serial.print(F("ERROR: Sending the MQTT subscribe failed.\n       Topic: "));
+          Serial.println(TOPIC_RELAY_COMMAND);
+        #endif
       }
 
-      // set the initial status of the relay
+      // Set the relay to match the value that we have stored.
       setRelayStatus();
 
-      // publish the initial status of the relay
+      // Publish the status of the relay to bring everything back into sync.
       publishRelayStatus();
     } else {
-#ifdef DEBUG
-      Serial.println(F("ERROR: The connection failed with the MQTT broker"));
-      Serial.print("ERROR: rc: ");
-      Serial.println(g_mqttClient.state());
-      // wait 5 seconds before retrying
-      delay(5000);
-#endif
+      #ifdef DEBUG
+        Serial.print(F("ERROR: The connection failed with the MQTT broker.\n       Status: "));
+        Serial.println(g_mqttClient.state());
+      #endif
+      
+      // Wait before retrying instead of clobbering the server.
+      delay(2500);
     }
   }
 }
 
-///////////////////////////////////////////////////////////////////////////
+
+//############################################################################
 //
-// SETUP and LOOP
+//                      Bypass monitoring and actions
 //
-///////////////////////////////////////////////////////////////////////////
+//############################################################################
 
 /*
-   Function called once to initialize the board
-*/
-void setup() {
-#ifdef DEBUG
-  Serial.begin(115200);
-  Serial.println(F("\nINFO: The Wi-Fi module is starting..."));
-#endif
-
-  // init the relay pin as output
-  pinMode(RELAY_PIN,         OUTPUT);
-
-  setupWifi();
-
-  // set the MQTT broker IP address and port
-  g_mqttClient.setServer(MQTT_SERVER_IP, MQTT_SERVER_PORT);
-  // set the MQTT callback function
-  g_mqttClient.setCallback(callback);
+ * Interrupt received, bypass flag for loop action item
+ *   INPUT:  NA
+ *   RETURN: NA
+ */
+void g_bypass_activated_interrupt() {
+  #ifdef DEBUG
+    Serial.println("INFO:  Bypass interrupt activated.");
+  #endif
+  
+  // Set the interrupt
+  g_bypass_activated = true;
 }
 
 /*
-   Function called infinitely after the setup function
-*/
+ * Detected bypass input request, trigger bypass action
+ *  INPUT:  NA
+ *  RETURN: NA
+ */
+void g_bypass_activated_actionable(){
+    if (g_relay_status == false && digitalRead(BYPASS_PIN) == 1) {
+      #ifdef DEBUG
+        Serial.println("INFO:  Bypass state switched from OFF to ON.");
+      #endif
+      // Hold state if switch; prevents MQTT from overriding physical user.
+      if(g_bypass_type) {
+        g_bypass_hold = true;
+      }
+      g_relay_status = true;
+      setRelayStatus();
+      publishRelayStatus();
+    } else if (g_relay_status == true && digitalRead(BYPASS_PIN) == 0) {
+      #ifdef DEBUG
+        Serial.println("INFO:  Bypass state switched from ON to OFF");
+      #endif
+      // Release state if switch; prevents MQTT from overriding physical user.
+      if(g_bypass_type) {
+        g_bypass_hold = false;
+      }
+      g_relay_status = false;
+      setRelayStatus();
+      publishRelayStatus();
+    } else {
+      #ifdef DEBUG
+        Serial.println("INFO:  Requested bypass state matches current state.");
+      #endif
+    }
+}
+
+
+//############################################################################
+//
+//                            SETUP and LOOP
+//
+//############################################################################
+
+/*
+ * System initialization
+ */
+void setup() {
+  #ifdef DEBUG
+    Serial.begin(115200);
+    Serial.println(F("\nINFO:  Wireless network initializing..."));
+  #endif
+
+  // Connect to network.
+  setupWifi();
+  
+  // Set IO pins for use.
+  pinMode(RELAY_PIN, OUTPUT);
+  pinMode(BYPASS_PIN, INPUT);
+
+  // Attach interrupt to avoid missing input.
+  if(g_bypass_type) {
+    // Switch
+    attachInterrupt(BYPASS_PIN, g_bypass_activated_interrupt, CHANGE);
+  } else {
+    // Button
+    attachInterrupt(BYPASS_PIN, g_bypass_activated_interrupt, RISING);
+  }
+
+  // Configure and connect to MQTT broker.
+  g_mqttClient.setServer(MQTT_SERVER_IP, MQTT_SERVER_PORT);
+  g_mqttClient.setCallback(callback);
+
+  // Configure and initialize OTA listener.
+  ArduinoOTA.setHostname(OTA_HOSTNAME);
+  ArduinoOTA.setPassword(OTA_PASSWORD);
+  ArduinoOTA.setPort(OTA_PORT);
+  
+  #ifdef DEBUG
+    ArduinoOTA.onStart([]() {
+      Serial.println(F("INFO:  OTA session started."));
+    });
+    ArduinoOTA.onEnd([]() {
+      Serial.println(F("INFO:  OTA session ended."));
+    });
+    ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
+      Serial.printf("INFO:  OTA rogress is %u%%\r", (progress / (total / 100)));
+    });
+    ArduinoOTA.onError([](ota_error_t error) {
+      Serial.printf("ERROR: [%u] ", error);
+      if (error == OTA_AUTH_ERROR) {
+        Serial.println("Auth Failed");
+      } else if (error == OTA_BEGIN_ERROR) {
+        Serial.println("Begin Failed");
+      } else if (error == OTA_CONNECT_ERROR) {
+        Serial.println("Connect Failed");
+      } else if (error == OTA_RECEIVE_ERROR) {
+        Serial.println("Receive Failed");
+      } else if (error == OTA_END_ERROR) {
+        Serial.println("End Failed");
+      }
+    });
+  #endif
+
+  ArduinoOTA.begin();
+}
+
+/*
+ * System run
+ */
 void loop() {
-  // keep the MQTT client connected to the broker
+  // Ensure connection to MQTT broker is active, if not fix it.
   if (!g_mqttClient.connected()) {
     reconnect();
   }
+
+  // Listen for messages from the broker.
   g_mqttClient.loop();
+
+  // Listen for OTA messages
+  ArduinoOTA.handle();
   
-  // a delay is necessary if the debug is disabled
-  // without a delay, there is some latency to switch on/off a relay
+  // Check interrupt to see if physical state request set.
+  if (g_bypass_activated) {
+    g_bypass_activated_actionable();
+    g_bypass_activated = false;
+  }
+
+  // Delay required if debug mode is disabled due to delay of mechanical relays.
   yield();
-  //delay(100);
 }
