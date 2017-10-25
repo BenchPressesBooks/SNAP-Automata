@@ -52,7 +52,7 @@ const char*       PAYLOAD_OFF       = "OFF";
 
 // Track current status of the devices
 boolean           g_relay_status                 = false;
-boolean           g_bypass_activated             = false;
+uint8_t           g_bypass_activated             = 0;
 boolean           g_bypass_hold                  = false;
 boolean           g_bypass_type                  = true; // True = switch; False = button
 
@@ -68,6 +68,9 @@ const uint8_t     BYPASS_PIN        = D2;
 WiFiClient        g_wifiClient;
 PubSubClient      g_mqttClient(g_wifiClient);
 
+// Other event handling
+const uint8_t     DEBOUNCE_DELAY    = 200; // Delay in MS
+long              DEBOUNCE_TIME     = 0;
 
 //############################################################################
 //
@@ -206,8 +209,9 @@ void callback(char* p_topic, byte* p_payload, unsigned int p_length) {
       #endif
     }
   } else if (g_bypass_hold) {
+    publishRelayStatus();
     #ifdef DEBUG
-      Serial.println(F("INFO:  Bypass triggered, aborting all requested actions."));
+      Serial.println(F("INFO:  Bypass set, aborting requested action."));
     #endif
   } else {
     #ifdef DEBUG
@@ -253,65 +257,9 @@ void reconnect() {
       #endif
       
       // Wait before retrying instead of clobbering the server.
-      delay(2500);
+      delay(1000);
     }
   }
-}
-
-
-//############################################################################
-//
-//                      Bypass monitoring and actions
-//
-//############################################################################
-
-/*
- * Interrupt received, bypass flag for loop action item
- *   INPUT:  NA
- *   RETURN: NA
- */
-void g_bypass_activated_interrupt() {
-  #ifdef DEBUG
-    Serial.println("INFO:  Bypass interrupt activated.");
-  #endif
-  
-  // Set the interrupt
-  g_bypass_activated = true;
-}
-
-/*
- * Detected bypass input request, trigger bypass action
- *  INPUT:  NA
- *  RETURN: NA
- */
-void g_bypass_activated_actionable(){
-    if (g_relay_status == false && digitalRead(BYPASS_PIN) == 1) {
-      #ifdef DEBUG
-        Serial.println("INFO:  Bypass state switched from OFF to ON.");
-      #endif
-      // Hold state if switch; prevents MQTT from overriding physical user.
-      if(g_bypass_type) {
-        g_bypass_hold = true;
-      }
-      g_relay_status = true;
-      setRelayStatus();
-      publishRelayStatus();
-    } else if (g_relay_status == true && digitalRead(BYPASS_PIN) == 0) {
-      #ifdef DEBUG
-        Serial.println("INFO:  Bypass state switched from ON to OFF");
-      #endif
-      // Release state if switch; prevents MQTT from overriding physical user.
-      if(g_bypass_type) {
-        g_bypass_hold = false;
-      }
-      g_relay_status = false;
-      setRelayStatus();
-      publishRelayStatus();
-    } else {
-      #ifdef DEBUG
-        Serial.println("INFO:  Requested bypass state matches current state.");
-      #endif
-    }
 }
 
 
@@ -336,15 +284,6 @@ void setup() {
   // Set IO pins for use.
   pinMode(RELAY_PIN, OUTPUT);
   pinMode(BYPASS_PIN, INPUT);
-
-  // Attach interrupt to avoid missing input.
-  if(g_bypass_type) {
-    // Switch
-    attachInterrupt(BYPASS_PIN, g_bypass_activated_interrupt, CHANGE);
-  } else {
-    // Button
-    attachInterrupt(BYPASS_PIN, g_bypass_activated_interrupt, RISING);
-  }
 
   // Configure and connect to MQTT broker.
   g_mqttClient.setServer(MQTT_SERVER_IP, MQTT_SERVER_PORT);
@@ -398,13 +337,45 @@ void loop() {
 
   // Listen for OTA messages
   ArduinoOTA.handle();
-  
-  // Check interrupt to see if physical state request set.
-  if (g_bypass_activated) {
-    g_bypass_activated_actionable();
-    g_bypass_activated = false;
-  }
 
-  // Delay required if debug mode is disabled due to delay of mechanical relays.
-  yield();
+  // Prevent bouncing when performing actions following a read.
+  if (millis() - DEBOUNCE_TIME >= DEBOUNCE_DELAY) {
+    if(g_bypass_activated != digitalRead(BYPASS_PIN)) {
+      //Read in the new state change.
+      g_bypass_activated = digitalRead(BYPASS_PIN);
+      
+      // Perform the requested action
+      if (g_relay_status == false && g_bypass_activated == HIGH) {
+        #ifdef DEBUG
+          Serial.println("INFO:  Bypass state switched from OFF to ON.");
+        #endif
+        g_relay_status = true;
+        // Hold state if switch; prevents MQTT from overriding physical user.
+        if(g_bypass_type) {
+          g_bypass_hold = true;
+        }
+        setRelayStatus();
+        publishRelayStatus();
+      } else if (g_relay_status == true && g_bypass_activated == LOW) {
+        #ifdef DEBUG
+          Serial.println("INFO:  Bypass state switched from ON to OFF");
+        #endif
+        g_relay_status = false;
+        // Release state if switch; prevents MQTT from overriding physical user.
+        if(g_bypass_type) {
+          g_bypass_hold = false;
+        }
+        setRelayStatus();
+        publishRelayStatus();
+      } else {
+        #ifdef DEBUG
+          Serial.println("INFO:  Requested bypass state matches current state.");
+        #endif
+        // Publish status anyway to prevent client hangs.
+        publishRelayStatus();
+      }
+    }
+    // Set the last time of button press.
+    DEBOUNCE_TIME = millis();
+  }
 }
