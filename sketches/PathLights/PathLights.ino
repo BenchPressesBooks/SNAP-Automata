@@ -97,6 +97,11 @@ const uint8_t     BYPASS_ZONE3_PIN     = 9;
 EthernetClient    g_ethernetClient;
 PubSubClient      g_mqttClient(g_ethernetClient);
 
+// Other event handling
+const uint8_t     DEBOUNCE_DELAY    = 200; // Delay in MS
+long              DEBOUNCE_TIME     = 0;
+
+
 //############################################################################
 //
 //                          Zone 1 - Front
@@ -316,7 +321,7 @@ void setZone4Status() {
 
 //############################################################################
 //
-// Ethernet
+//                                Ethernet
 //
 //############################################################################
 
@@ -532,7 +537,7 @@ void reconnect() {
       #endif
       
       // Wait before retrying instead of clobbering the server.
-      delay(2000);
+      delay(1000);
     }
   }
 }
@@ -597,70 +602,79 @@ void loop() {
   g_zone3_bypass_activated = digitalRead(BYPASS_ZONE3_PIN);
 
   if (g_zone1_bypass_activated == HIGH) {
-    if (g_zone1_status == false) {
-      #ifdef DEBUG
-        Serial.println("INFO:  Bypass 1 state switched from OFF to ON.");
-      #endif
-      g_zone1_status = true;
-      setZone1Status();
-      publishZone1Status();
-    } else if (g_zone1_status == true) {
-      #ifdef DEBUG
-        Serial.println("INFO:  Bypass 1 state switched from ON to OFF");
-      #endif
-      g_zone1_status = false;
-      setZone1Status();
-      publishZone1Status();
-    } else {
-      #ifdef DEBUG
-        Serial.println("INFO:  Requested bypass 1 state matches current state.");
-      #endif
+    // Prevent bouncing when performing actions following a read.
+    if (millis() - DEBOUNCE_TIME >= DEBOUNCE_DELAY) {
+      if (g_zone1_status == false) {
+        #ifdef DEBUG
+          Serial.println("INFO:  Bypass 1 state switched from OFF to ON.");
+        #endif
+        g_zone1_status = true;
+        setZone1Status();
+        publishZone1Status();
+      } else if (g_zone1_status == true) {
+        #ifdef DEBUG
+          Serial.println("INFO:  Bypass 1 state switched from ON to OFF");
+        #endif
+        g_zone1_status = false;
+        setZone1Status();
+        publishZone1Status();
+      } else {
+        #ifdef DEBUG
+          Serial.println("INFO:  Requested bypass 1 state matches current state.");
+        #endif
+      }
+      // Set the last time of button press.
+      DEBOUNCE_TIME = millis();
     }
-    delay(500);
   } else if (g_zone2_bypass_activated == HIGH) {
-    if (g_zone2_status == false) {
-      #ifdef DEBUG
-        Serial.println("INFO:  Bypass 2 state switched from OFF to ON.");
-      #endif
-      g_zone2_status = true;
-      setZone2Status();
-      publishZone2Status();
-    } else if (g_zone2_status == true) {
-      #ifdef DEBUG
-        Serial.println("INFO:  Bypass 2 state switched from ON to OFF");
-      #endif
-      g_zone2_status = false;
-      setZone2Status();
-      publishZone2Status();
-    } else {
-      #ifdef DEBUG
-        Serial.println("INFO:  Requested bypass 2 state matches current state.");
-      #endif
+    // Prevent bouncing when performing actions following a read.
+    if (millis() - DEBOUNCE_TIME >= DEBOUNCE_DELAY) {
+      if (g_zone2_status == false) {
+        #ifdef DEBUG
+          Serial.println("INFO:  Bypass 2 state switched from OFF to ON.");
+        #endif
+        g_zone2_status = true;
+        setZone2Status();
+        publishZone2Status();
+      } else if (g_zone2_status == true) {
+        #ifdef DEBUG
+          Serial.println("INFO:  Bypass 2 state switched from ON to OFF");
+        #endif
+        g_zone2_status = false;
+        setZone2Status();
+        publishZone2Status();
+      } else {
+        #ifdef DEBUG
+          Serial.println("INFO:  Requested bypass 2 state matches current state.");
+        #endif
+      }
+      // Set the last time of button press.
+      DEBOUNCE_TIME = millis();
     }
-    delay(500);
   } else if (g_zone3_bypass_activated == HIGH) {
+    // Prevent bouncing when performing actions following a read.
+    if (millis() - DEBOUNCE_TIME >= DEBOUNCE_DELAY) {
       if (g_zone3_status == false) {
-      #ifdef DEBUG
-        Serial.println("INFO:  Bypass 3 state switched from OFF to ON.");
-      #endif
-      g_zone3_status = true;
-      setZone3Status();
-      publishZone3Status();
-    } else if (g_zone3_status == true) {
-      #ifdef DEBUG
-        Serial.println("INFO:  Bypass 3 state switched from ON to OFF");
-      #endif
-      g_zone3_status = false;
-      setZone3Status();
-      publishZone3Status();
-    } else {
-      #ifdef DEBUG
-        Serial.println("INFO:  Requested bypass 3 state matches current state.");
-      #endif
+        #ifdef DEBUG
+          Serial.println("INFO:  Bypass 3 state switched from OFF to ON.");
+        #endif
+        g_zone3_status = true;
+        setZone3Status();
+        publishZone3Status();
+      } else if (g_zone3_status == true) {
+        #ifdef DEBUG
+          Serial.println("INFO:  Bypass 3 state switched from ON to OFF");
+        #endif
+        g_zone3_status = false;
+        setZone3Status();
+        publishZone3Status();
+      } else {
+        #ifdef DEBUG
+          Serial.println("INFO:  Requested bypass 3 state matches current state.");
+        #endif
+      }
+      // Set the last time of button press.
+      DEBOUNCE_TIME = millis();
     }
-    delay(500);
   }
-  
-  // Delay required if debug mode is disabled due to delay of mechanical relays.
-  yield();
 }
