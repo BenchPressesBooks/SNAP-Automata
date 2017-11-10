@@ -272,6 +272,7 @@ void reconnect() {
 //                              OTA Updates
 //
 //############################################################################
+
 /*
  * Function called to check for updates from the binary server
  *   INPUT:  NA
