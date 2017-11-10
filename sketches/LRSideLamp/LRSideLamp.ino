@@ -1,4 +1,6 @@
 /*
+ * Software Revision: 3.13
+ * 
  * Configuration for Home Assistant:
  *   light:
  *   # Interior: Living Room Side Lamp
@@ -11,8 +13,8 @@
 
 #include <ESP8266WiFi.h>    // https://github.com/esp8266/Arduino (GNUv2.1 licence)
 #include <PubSubClient.h>   // https://github.com/knolleary/pubsubclient (no licence)
-#include <ArduinoOTA.h>
-
+#include <ESP8266HTTPClient.h>
+#include <ESP8266httpUpdate.h>
 
 #define DEBUG
 #define MQTT_VERSION MQTT_VERSION_3_1_1
@@ -31,14 +33,13 @@ const IPAddress   IP_DNS            (<REDACTED>);
 // MQTT: client ID, broker IP, port, username & password
 const char*       MQTT_CLIENT_ID    = "<REDACTED>";
 const char*       MQTT_SERVER_IP    = "<REDACTED>";
-const uint16_t    MQTT_SERVER_PORT  = 1883;
+const uint8_t     MQTT_SERVER_PORT  = 1883;
 const char*       MQTT_USERNAME     = "<REDACTED>";
 const char*       MQTT_PASSWORD     = "<REDACTED>";
 
-// OTA: hostname & password
-const char*       OTA_HOSTNAME      = MQTT_CLIENT_ID;
-const char*       OTA_PASSWORD      = "<REDACTED>";
-const uint16_t    OTA_PORT          = 8266;
+// OTA Information
+const char*       OTA_SERVER_IP      = "<REDACTED>";
+const uint8_t     OTA_PORT           = 80;
 
 // MQTT: topics
 // Interior: Living Room Side Lamp
@@ -69,8 +70,11 @@ WiFiClient        g_wifiClient;
 PubSubClient      g_mqttClient(g_wifiClient);
 
 // Other event handling
-const uint8_t     DEBOUNCE_DELAY    = 200; // Delay in MS
-long              DEBOUNCE_TIME     = 0;
+const uint8_t       DEBOUNCE_DELAY    = 200; // Delay in MS is .2 sec
+unsigned long       DEBOUNCE_TIME     = 0;
+const unsigned long UPDATE_DELAY      = 300000; // Delay in MS is 5 mins
+unsigned long       UPDATE_TIME       = 0;
+
 
 //############################################################################
 //
@@ -265,6 +269,41 @@ void reconnect() {
 
 //############################################################################
 //
+//                              OTA Updates
+//
+//############################################################################
+/*
+ * Function called to check for updates from the binary server
+ *   INPUT:  NA
+ *   Return: NA
+ */
+void checkForUpdates() {
+  #ifdef DEBUG
+    Serial.println(F("INFO:  OTA update check beginning..."));
+  #endif
+
+  // Make the server side call and hold onto the HTTP return status
+  t_httpUpdate_return state = ESPhttpUpdate.update(OTA_SERVER_IP, OTA_PORT, "/updater.php");
+
+  // Do something based on the response from the server
+  #ifdef DEBUG
+    switch (state) {
+      case HTTP_UPDATE_FAILED:
+        Serial.println(F("ERROR: OTA update failed."));
+        break;
+      case HTTP_UPDATE_NO_UPDATES:
+        Serial.println(F("INFO:  OTA update not available. Already running latest version."));
+        break;
+      case HTTP_UPDATE_OK:
+        Serial.println(F("INFO:  OTA update succeeded."));
+        break;
+    }
+  #endif
+}
+
+
+//############################################################################
+//
 //                            SETUP and LOOP
 //
 //############################################################################
@@ -288,39 +327,6 @@ void setup() {
   // Configure and connect to MQTT broker.
   g_mqttClient.setServer(MQTT_SERVER_IP, MQTT_SERVER_PORT);
   g_mqttClient.setCallback(callback);
-
-  // Configure and initialize OTA listener.
-  ArduinoOTA.setHostname(OTA_HOSTNAME);
-  ArduinoOTA.setPassword(OTA_PASSWORD);
-  ArduinoOTA.setPort(OTA_PORT);
-  
-  #ifdef DEBUG
-    ArduinoOTA.onStart([]() {
-      Serial.println(F("INFO:  OTA session started."));
-    });
-    ArduinoOTA.onEnd([]() {
-      Serial.println(F("INFO:  OTA session ended."));
-    });
-    ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
-      Serial.printf("INFO:  OTA rogress is %u%%\r", (progress / (total / 100)));
-    });
-    ArduinoOTA.onError([](ota_error_t error) {
-      Serial.printf("ERROR: [%u] ", error);
-      if (error == OTA_AUTH_ERROR) {
-        Serial.println("Auth Failed");
-      } else if (error == OTA_BEGIN_ERROR) {
-        Serial.println("Begin Failed");
-      } else if (error == OTA_CONNECT_ERROR) {
-        Serial.println("Connect Failed");
-      } else if (error == OTA_RECEIVE_ERROR) {
-        Serial.println("Receive Failed");
-      } else if (error == OTA_END_ERROR) {
-        Serial.println("End Failed");
-      }
-    });
-  #endif
-
-  ArduinoOTA.begin();
 }
 
 /*
@@ -328,15 +334,15 @@ void setup() {
  */
 void loop() {
   // Ensure connection to MQTT broker is active, if not fix it.
-  if (!g_mqttClient.connected()) {
+  if (WiFi.status() != WL_CONNECTED) {
+    setupWifi();
+  }else if (!g_mqttClient.connected()) {
     reconnect();
   }
 
   // Listen for messages from the broker.
   g_mqttClient.loop();
 
-  // Listen for OTA messages
-  ArduinoOTA.handle();
 
   // Prevent bouncing when performing actions following a read.
   if (millis() - DEBOUNCE_TIME >= DEBOUNCE_DELAY) {
@@ -377,5 +383,14 @@ void loop() {
     }
     // Set the last time of button press.
     DEBOUNCE_TIME = millis();
+  }
+
+  // Check for code updates at a throttled pace.
+  if (millis() - UPDATE_TIME >= UPDATE_DELAY) {
+    //Check for update.
+    checkForUpdates();
+
+    // Set the last time of update check.
+    UPDATE_TIME = millis();
   }
 }
