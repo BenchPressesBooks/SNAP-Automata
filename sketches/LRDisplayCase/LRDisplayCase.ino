@@ -1,5 +1,5 @@
 /*
- * Software Revision: 2.1
+ * Software Revision: 2.2
  * 
  * Configuration for Home Assistant:
  *   light:

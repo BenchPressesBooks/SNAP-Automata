@@ -1,5 +1,5 @@
 /*
- * Software Revision: 3.13
+ * Software Revision: 3.14
  * 
  * Configuration for Home Assistant:
  *   light:
