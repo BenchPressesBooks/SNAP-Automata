@@ -33,7 +33,7 @@ const IPAddress   IP_DNS            (<REDACTED>);
 // MQTT: client ID, broker IP, port, username & password
 const char*       MQTT_CLIENT_ID    = "<REDACTED>";
 const char*       MQTT_SERVER_IP    = "<REDACTED>";
-const uint8_t     MQTT_SERVER_PORT  = 1883;
+const uint16_t    MQTT_SERVER_PORT  = 1883;
 const char*       MQTT_USERNAME     = "<REDACTED>";
 const char*       MQTT_PASSWORD     = "<REDACTED>";
 
