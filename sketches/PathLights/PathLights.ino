@@ -1,54 +1,61 @@
 /*
- * Configuration for Home Assistant:
- *   light:
- *   # Zone 1 Front Path Lights
- *   - platform: mqtt
- *     name: 'Zone 1 Front Path Lights'
- *     state_topic: 'exterior/plfront/status'
- *     command_topic: 'exterior/plfront/switch'
- *     optimistic: false
- *
- *   # Zone 2 Side Path Lights
- *   - platform: mqtt
- *     name: 'Zone 2 Side Path Lights'
- *     state_topic: 'exterior/plside/status'
- *     command_topic: 'exterior/plside/switch'
- *     optimistic: false
- *
- *   # Zone 3 Rear Pond Lights
- *   - platform: mqtt
- *     name: 'Zone 3 Rear Pond Lights'
- *     state_topic: 'exterior/plrear/status'
- *     command_topic: 'exterior/plrear/switch'
- *     optimistic: false
- *
- *   # Zone 4 Unused
- *   - platform: mqtt
- *     name: 'Zone 4'
- *     state_topic: 'exterior/unused/status'
- *     command_topic: 'exterior/unused/switch'
- *     optimistic: false
- */
+ * *******************************************************
+ *   Arduino Uno and SeeedStudio W5200 Device Deployment
+ *               Software Revision: 2.19
+ *             
+ *           EXTERIOR PATH LIGHT CONTROLLER
+ * *******************************************************
+ * 
+ * COMPILE OPTIONS:
+ *   Arduino Uno Based Device
+ *     Board:   Arduino/Genuino Uno
+ *     ALL OTHER SETTINGS DEFAULT
+ * 
+ * *******************************************************
+ * 
+ * Device: Arduino Uno with SeeedStudio W5200 Shield
+ * Description:
+ *    Indoor/Outdoor enclosed relay and output system.
+ *    Emulates photo eye sensor on outdoor transformer
+ *    to trigger landscape lighting. Relays used to
+ *    trip 12vAC photo eye input. Transformers must be
+ *    set to "Automatic - Daylight" option to work.
+ * 
+ * Enabled Hardware Capabilities:
+ *    Four Channel Relay Selector
+ *    Three Bypass Switches
+ *    Reset Button
+ * 
+ * Copyright 2017 Braden Licastro
+ * www.bradenlicastro.com
+ * www.github.com/benchpressesbooks
+ * 
+*/
 
-#include <EthernetV2_0.h>   // https://github.com/Seeed-Studio/Ethernet_Shield_W5200 (For the Seeedstudio W5200 ethernet shield.)
-#include <PubSubClient.h>   // https://github.com/knolleary/pubsubclient (no licence)
+// Required libraries
+#include <EthernetV2_0.h>   // https://github.com/Seeed-Studio/Ethernet_Shield_W5200 (For the Seeedstudio W5200 ethernet shield)
+#include <PubSubClient.h>   // https://github.com/knolleary/pubsubclient
 
-#define DEBUG
+// Libraries containing sensitive network config parameters
+#include <Skynet-Infra.h>
+#include <Skynet-MQTT.h>
+
+//#define DEBUG
 #define MQTT_VERSION MQTT_VERSION_3_1_1
 
 // Device network details: IP address, IP gateway, subnet, dns.
-const IPAddress   IP                (<REDACTED>);
-const IPAddress   IP_GATEWAY        (<REDACTED>);
-const IPAddress   IP_SUBNET         (<REDACTED>);
-const IPAddress   IP_DNS            (<REDACTED>);
-byte mac[] = {<REDACTED>};
+const IPAddress   IP                (10, 0, 10, 2);
+byte mac[] = {0xDE, 0x05, 0x97, 0x2C, 0x61, 0xB3};
+const IPAddress   IP_GATEWAY        NET_GATEWAY;
+const IPAddress   IP_SUBNET         NET_SUBNET;
+const IPAddress   IP_DNS            NET_DNS;
 
 // MQTT: client ID, broker IP address, port, username & password
-const char*       MQTT_CLIENT_ID    = "<REDACTED>";
-const char*       MQTT_SERVER_IP    = "<REDACTED>";
-const uint16_t    MQTT_SERVER_PORT  = 1883;
-const char*       MQTT_USERNAME     = "<REDACTED>";
-const char*       MQTT_PASSWORD     = "<REDACTED>";
+const char*       MQTT_CLIENT_ID    = "MQTT-PATHLIGHTCONTROL";
+const char*       MQTT_SERVER_IP    = MQTT_SERV_IP;
+const uint16_t    MQTT_SERVER_PORT  = MQTT_SERV_PORT;
+const char*       MQTT_USERNAME     = MQTT_USER_EXT;
+const char*       MQTT_PASSWORD     = MQTT_PASS_EXT;
 
 // MQTT: topics
 // Zone 1
@@ -331,7 +338,10 @@ void setZone4Status() {
  *   RETURN: NA
  */
 void setupEthernet() {
-  delay(10);
+  #ifdef DEBUG
+    Serial.println(F("\nINFO:  Ethernet network initializing..."));
+  #endif
+  
   // Attempt to connect to the network
   Ethernet.begin(mac, IP, IP_DNS, IP_GATEWAY, IP_SUBNET);
 
@@ -537,7 +547,7 @@ void reconnect() {
       #endif
       
       // Wait before retrying instead of clobbering the server.
-      delay(1000);
+      delay(3000);
     }
   }
 }
@@ -554,10 +564,9 @@ void reconnect() {
 void setup() {
   #ifdef DEBUG
     Serial.begin(115200);
-    Serial.println(F("\nINFO:  Ethernet network initializing..."));
   #endif
 
-  // Disable SD Card
+  // Disable SD Card or Ethernet breaks
   pinMode(4,OUTPUT);
   digitalWrite(4,HIGH);
 
@@ -601,9 +610,9 @@ void loop() {
   g_zone2_bypass_activated = digitalRead(BYPASS_ZONE2_PIN);
   g_zone3_bypass_activated = digitalRead(BYPASS_ZONE3_PIN);
 
-  if (g_zone1_bypass_activated == HIGH) {
+  if (millis() - DEBOUNCE_TIME >= DEBOUNCE_DELAY) {
     // Prevent bouncing when performing actions following a read.
-    if (millis() - DEBOUNCE_TIME >= DEBOUNCE_DELAY) {
+    if (g_zone1_bypass_activated == HIGH) {
       if (g_zone1_status == false) {
         #ifdef DEBUG
           Serial.println("INFO:  Bypass 1 state switched from OFF to ON.");
@@ -623,12 +632,7 @@ void loop() {
           Serial.println("INFO:  Requested bypass 1 state matches current state.");
         #endif
       }
-      // Set the last time of button press.
-      DEBOUNCE_TIME = millis();
-    }
-  } else if (g_zone2_bypass_activated == HIGH) {
-    // Prevent bouncing when performing actions following a read.
-    if (millis() - DEBOUNCE_TIME >= DEBOUNCE_DELAY) {
+    } else if (g_zone2_bypass_activated == HIGH) {
       if (g_zone2_status == false) {
         #ifdef DEBUG
           Serial.println("INFO:  Bypass 2 state switched from OFF to ON.");
@@ -648,12 +652,7 @@ void loop() {
           Serial.println("INFO:  Requested bypass 2 state matches current state.");
         #endif
       }
-      // Set the last time of button press.
-      DEBOUNCE_TIME = millis();
-    }
-  } else if (g_zone3_bypass_activated == HIGH) {
-    // Prevent bouncing when performing actions following a read.
-    if (millis() - DEBOUNCE_TIME >= DEBOUNCE_DELAY) {
+    } else if (g_zone3_bypass_activated == HIGH) {
       if (g_zone3_status == false) {
         #ifdef DEBUG
           Serial.println("INFO:  Bypass 3 state switched from OFF to ON.");
@@ -673,8 +672,8 @@ void loop() {
           Serial.println("INFO:  Requested bypass 3 state matches current state.");
         #endif
       }
-      // Set the last time of button press.
-      DEBOUNCE_TIME = millis();
     }
+    // Set the last time of button press.
+    DEBOUNCE_TIME = millis();
   }
 }

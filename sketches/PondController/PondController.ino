@@ -1,27 +1,29 @@
 /*
  * *******************************************************
- *        SNAP Automata Custom Device Deployment
- *               Software Revision: 3.66
+ *       Woods WiON and ECOPlug Device Deployment
+ *             Software Revision: 1.61
  *             
- *             LIVING ROOM SIDE TABLE LAMP
+ *                POND WATER PUMP
  * *******************************************************
  * 
  * COMPILE OPTIONS:
- *   SNAP Automata ACOM-150
- *     Board:   WeMos D1 R2 & mini
- *     Memory:  4M (1. SPIFFS)
+ *   WiON or ECOPlug
+ *     Board:   Generic ESP8266 Module
+ *     Memory:  1M (no SPIFFS)
  *     ALL OTHER SETTINGS DEFAULT
  * 
  * *******************************************************
  * 
- * Device: SNAP Automata | Model: ACOM-150
+ * Device: Woods WiOn | Model 50054
  * Description:
- *    Indoor Wi-Fi outlet w. 3 foot cable. 125v. 2.4A General, 8.3A Ballast
+ *    Outdoor Wi-Fi smart box. 120-277v. Liquidtight,
+ *    lockable enclosure. NO-40A, NC-30A
  * 
  * Enabled Hardware Capabilities:
+ *    LED Indicator
  *    Relay
- *    Bypass Switch
- *    Reset Switch
+ *    Bypass Button
+ *    Reset Button
  * 
  * Copyright 2017 Braden Licastro
  * www.bradenlicastro.com
@@ -48,56 +50,56 @@
 const char*       AP_SSID           = WIFI_SSID;
 const char*       AP_PASSWORD       = WIFI_PASSWORD;
 
-// Device network details: IP address, IP gateway, subnet, dns.
+// Device network details: IP address, IP gateway, subnet, dns
 // NOTE: WiFi does not support configurable MAC
-const IPAddress   IP                (10,0,10,4);
+const IPAddress   IP                (10,0,10,7);
 const IPAddress   IP_GATEWAY        NET_GATEWAY;
 const IPAddress   IP_SUBNET         NET_SUBNET;
 const IPAddress   IP_DNS            NET_DNS;
 
 // MQTT: client ID, broker IP, port, username & password
-const char*       MQTT_CLIENT_ID    = "MQTT-LRSIDELAMP";
+const char*       MQTT_CLIENT_ID    = "MQTT-PONDCONTROL";
 const char*       MQTT_SERVER_IP    = MQTT_SERV_IP;
 const uint16_t    MQTT_SERVER_PORT  = MQTT_SERV_PORT;
-const char*       MQTT_USERNAME     = MQTT_USER_INT;
-const char*       MQTT_PASSWORD     = MQTT_PASS_INT;
+const char*       MQTT_USERNAME     = MQTT_USER_EXT;
+const char*       MQTT_PASSWORD     = MQTT_PASS_EXT;
 
 // OTA Information
 const char*       OTA_SERVER_IP     = OTA_SERV_IP;
 const uint8_t     OTA_PORT          = OTA_SERV_PORT;
 
 // MQTT: topics
-const char*       TOPIC_RELAY_STATUS             = "firstfloor/lrsidelamp/status";
-const char*       TOPIC_RELAY_COMMAND            = "firstfloor/lrsidelamp/switch";
+const char*       TOPIC_RELAY_STATUS         = "exterior/pondcontrol/status";
+const char*       TOPIC_RELAY_COMMAND        = "exterior/pondcontrol/switch";
 
 // MQTT: Expected Payloads
-// Lamps : "ON"/"OFF"
-const char*       PAYLOAD_ON        = "ON";
-const char*       PAYLOAD_OFF       = "OFF";
+// Pump : "ON"/"OFF"
+const char*       PAYLOAD_ON      = "ON";
+const char*       PAYLOAD_OFF     = "OFF";
 
 // Track current status of the devices
-boolean           g_relay_status                 = false;
-uint8_t           g_bypass_activated             = 0;
-boolean           g_bypass_hold                  = false;
-boolean           g_bypass_type                  = true; // True = switch; False = button
+boolean           g_relay_status             = false;
+uint8_t           g_bypass_activated         = 0;
 
 // Buffer configuration used to send/receive data with MQTT
 const uint8_t     MSG_BUFFER_SIZE   = 20;
 char              g_msg_buffer[MSG_BUFFER_SIZE];
 
 // Pin configuration
-const uint8_t     RELAY_PIN         = D1; // LOW is off
-const uint8_t     BYPASS_PIN        = D2; // LOW is off
+const uint8_t     RELAY_PIN       = 15; // LOW is off
+const uint8_t     BYPASS_PIN      = 13; // HIGH is unpressed
+const uint8_t     LED_PIN         = 2;  // HIGH is off
 
 // WiFi and MQTT client object initialization
 WiFiClient        g_wifiClient;
 PubSubClient      g_mqttClient(g_wifiClient);
 
 // Other event handling
-const uint8_t       DEBOUNCE_DELAY    = 200; // Delay in MS is .2 sec
-unsigned long       DEBOUNCE_TIME     = 0;
-const unsigned long UPDATE_DELAY      = 300000; // Delay in MS is 5 mins
-unsigned long       UPDATE_TIME       = 0;
+const uint8_t       DEBOUNCE_DELAY           = 200; // Delay in MS is .2 sec
+unsigned long       DEBOUNCE_TIME            = 0;
+const uint8_t       WIFI_LED_BLINK_DELAY     = 150; // Delay in MS is .15 sec
+const unsigned long UPDATE_DELAY             = 300000; // Delay in MS is 5 mins
+unsigned long       UPDATE_TIME              = 0;
 
 
 //############################################################################
@@ -139,6 +141,24 @@ void publishRelayStatus() {
       #endif
     }
   }
+}
+
+/*
+ * Sets the WiFi LED Status
+ *   INPUT:  8-bit unsigned integer 'count' is the number of times that the LED should blink
+ *           8-bit unsigned integer 'on_time' is the duration the LED should be turned on
+ *           8-bit unsigned integer 'off_time' is the duration the LED should be off for
+ *   RETURN: NA
+ */
+void setLED(uint8_t count, uint16_t on_time, uint16_t off_time) {
+  // Cycle LED the appropriate number of times.
+  for(int i = 0; i < count; i++) {
+    digitalWrite(LED_PIN, LOW);
+    delay(on_time);
+    digitalWrite(LED_PIN, HIGH);
+    delay(off_time);
+  }
+  return;
 }
 
 /*
@@ -253,8 +273,8 @@ void callback(char* p_topic, byte* p_payload, unsigned int p_length) {
     Serial.println(p_length);
   #endif
   
-  // Act on the contents of the payload IF manual bypass isn't triggered for the given event.
-  if (String(TOPIC_RELAY_COMMAND).equals(p_topic) && !g_bypass_hold) {
+  // Act on the contents of the payload.
+  if (String(TOPIC_RELAY_COMMAND).equals(p_topic)) {
     // Type juggle the payload from char array to string.
     String payload;
     for (uint8_t i = 0; i < p_length; i++) {
@@ -275,11 +295,6 @@ void callback(char* p_topic, byte* p_payload, unsigned int p_length) {
         Serial.println(F("ERROR: The payload of the MQTT message is not valid"));
       #endif
     }
-  } else if (g_bypass_hold) {
-    publishRelayStatus();
-    #ifdef DEBUG
-      Serial.println(F("INFO:  Bypass set, aborting requested action."));
-    #endif
   } else {
     #ifdef DEBUG
       Serial.println(F("INFO:  The received MQTT message was for a topic we did not subscribe to and was not used."));
@@ -317,14 +332,17 @@ void reconnect() {
 
       // Publish the status of the relay to bring everything back into sync.
       publishRelayStatus();
+
+      // Indicate connnection to MQTT server via the WiFi LED.
+      digitalWrite(LED_PIN, LOW);
     } else {
       #ifdef DEBUG
         Serial.print(F("ERROR: The connection failed with the MQTT broker.\n       Status: "));
         Serial.println(g_mqttClient.state());
       #endif
       
-      // Wait before retrying instead of clobbering the server.
-      delay(3000);
+      // Wait before retrying instead of clobbering the server and indicate failure with LED.
+      setLED(10, WIFI_LED_BLINK_DELAY, WIFI_LED_BLINK_DELAY);
     }
   }
 }
@@ -350,8 +368,10 @@ void setup() {
   // Set IO pins for use.
   pinMode(RELAY_PIN, OUTPUT);
   pinMode(BYPASS_PIN, INPUT);
+  pinMode(LED_PIN, OUTPUT);
 
   digitalWrite(RELAY_PIN, LOW);
+  digitalWrite(LED_PIN, HIGH);
 
   // Configure and connect to MQTT broker.
   g_mqttClient.setServer(MQTT_SERVER_IP, MQTT_SERVER_PORT);
@@ -362,10 +382,10 @@ void setup() {
  * System run
  */
 void loop() {
-  // Ensure connection to MQTT broker is active, if not fix it.
+  // Ensure connection to wireless network is active, if not fix it.
   if (WiFi.status() != WL_CONNECTED) {
     setupWifi();
-  } 
+  }
 
   // Ensure connection to MQTT broker is active, if not fix it.
   if (!g_mqttClient.connected()) {
@@ -377,39 +397,31 @@ void loop() {
 
   // Prevent bouncing when performing actions following a read.
   if (millis() - DEBOUNCE_TIME >= DEBOUNCE_DELAY) {
-    if(g_bypass_activated != digitalRead(BYPASS_PIN)) {
+    if(g_bypass_activated != !digitalRead(BYPASS_PIN)) {
       // Read in the new state change.
-      g_bypass_activated = digitalRead(BYPASS_PIN);
+      g_bypass_activated = !digitalRead(BYPASS_PIN);
       
       // Perform the requested action
-      if (g_relay_status == false && g_bypass_activated == HIGH) {
+      if (g_bypass_activated == HIGH) {
+        if (g_relay_status == false) {
         #ifdef DEBUG
           Serial.println("INFO:  Bypass state switched from OFF to ON.");
         #endif
         g_relay_status = true;
-        // Hold state if switch; prevents MQTT from overriding physical user.
-        if(g_bypass_type) {
-          g_bypass_hold = true;
-        }
         setRelayStatus();
         publishRelayStatus();
-      } else if (g_relay_status == true && g_bypass_activated == LOW) {
+      } else if (g_relay_status == true) {
         #ifdef DEBUG
           Serial.println("INFO:  Bypass state switched from ON to OFF");
         #endif
         g_relay_status = false;
-        // Release state if switch; prevents MQTT from overriding physical user.
-        if(g_bypass_type) {
-          g_bypass_hold = false;
-        }
         setRelayStatus();
         publishRelayStatus();
       } else {
         #ifdef DEBUG
           Serial.println("INFO:  Requested bypass state matches current state.");
         #endif
-        // Publish status anyway to prevent client hangs.
-        publishRelayStatus();
+      }
       }
     }
     // Set the last time of button press.

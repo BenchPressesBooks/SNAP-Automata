@@ -22,7 +22,7 @@ Server Infrastructure:
 	
 Above server virtualized using ESXI (Minimal specs due to nature of device)
 - i7 Processor
-- Gigabit ethernet connnection
+- Gigabit Ethernet connection
 - 2GB RAM
 - 15GB disk space
 
@@ -35,7 +35,7 @@ Software Infrastructure:
 - MQTT Dash for Android
 - IoT endpoints using MQTT library for control and 
 - HomeAssistant as automation and interface
-- Mosquitto as MWTT broker	
+- Mosquitto as MQTT broker	
 	
 	
 ## Automation
@@ -67,7 +67,7 @@ sudo groupadd homeassistant
 sudo usermod -a -G homeassistant
 ```
 
-Next lets create the install dir, then home directory
+Next let’s create the install dir, then home directory
 
 ```
 sudo mkdir /srv/homeassistant
@@ -162,7 +162,7 @@ sudo touch /etc/mosquitto/conf.d/aclfile
 
 NOTE: Using the batch mode above for mosquitto_passwd will make the password available in your bashhistory file. Heed caution when using this method.
 
-I used `ha` as my main user for HomeAssistnat to communicate with Mosquitto. This will be visible in my ACLFILE in the repo above.
+I used `ha` as my main user for HomeAssistant to communicate with Mosquitto. This will be visible in my ACLFILE in the repo above.
 To link Home Assistant with the Mosquitto broker, `configuration.yaml` will need to have the lines below added
 
 ```yaml
