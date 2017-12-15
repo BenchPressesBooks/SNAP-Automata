@@ -67,8 +67,8 @@ const char*       OTA_SERVER_IP     = OTA_SERV_IP;
 const uint8_t     OTA_PORT          = OTA_SERV_PORT;
 
 // MQTT: topics
-const char*       TOPIC_RELAY_STATUS         = "firstfloor/officedisplaycase/status";
-const char*       TOPIC_RELAY_COMMAND        = "firstfloor/officedisplaycase/switch";
+const char*       TOPIC_RELAY_STATUS         = "secondfloor/officedisplaycase/status";
+const char*       TOPIC_RELAY_COMMAND        = "secondfloor/officedisplaycase/switch";
 
 // MQTT: Expected Payloads
 // Pump : "ON"/"OFF"
@@ -402,24 +402,24 @@ void loop() {
       // Perform the requested action
       if (g_bypass_activated == HIGH) {
         if (g_relay_status == false) {
-        #ifdef DEBUG
-          Serial.println("INFO:  Bypass state switched from OFF to ON.");
-        #endif
-        g_relay_status = true;
-        setRelayStatus();
-        publishRelayStatus();
-      } else if (g_relay_status == true) {
-        #ifdef DEBUG
-          Serial.println("INFO:  Bypass state switched from ON to OFF");
-        #endif
-        g_relay_status = false;
-        setRelayStatus();
-        publishRelayStatus();
-      } else {
-        #ifdef DEBUG
-          Serial.println("INFO:  Requested bypass state matches current state.");
-        #endif
-      }
+          #ifdef DEBUG
+            Serial.println("INFO:  Bypass state switched from OFF to ON.");
+          #endif
+          g_relay_status = true;
+          setRelayStatus();
+          publishRelayStatus();
+        } else if (g_relay_status == true) {
+          #ifdef DEBUG
+            Serial.println("INFO:  Bypass state switched from ON to OFF");
+          #endif
+          g_relay_status = false;
+          setRelayStatus();
+          publishRelayStatus();
+        } else {
+          #ifdef DEBUG
+            Serial.println("INFO:  Requested bypass state matches current state.");
+          #endif
+        }
       }
     }
     // Set the last time of button press.
