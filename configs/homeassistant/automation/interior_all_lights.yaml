@@ -1,0 +1,13 @@
+##########################################################
+#  Turn Off Interior Lights at 0100 hours
+##########################################################
+alias: 'Turn off all interior lighting at 0100 hours'
+trigger:
+  - platform: time
+    at: '01:00:00'
+action:
+  - service: switch.turn_off
+    entity_id:
+      - light.lrsidelamp
+      - light.lrdisplaycase
+      - light.officedisplaycase

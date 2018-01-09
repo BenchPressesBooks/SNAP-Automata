@@ -1,0 +1,18 @@
+##########################################################
+#  Garage Door - State closed while away
+##########################################################
+alias: 'Notification - Garage door closed while away'
+trigger:
+  - platform: state
+    entity_id:
+      - binary_sensor.garagedoor_state
+    to: 'off'
+condition:
+  - condition: state
+    entity_id: input_boolean.mode_away
+    state: 'on'
+action:
+  - service: notify.pb_notify
+    data:
+      title: "URGENT: Garage Door CLOSED While Away"
+      message: "The garage door has been CLOSED and should now be secure."

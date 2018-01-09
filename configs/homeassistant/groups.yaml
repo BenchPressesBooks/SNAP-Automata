@@ -1,43 +1,189 @@
+######################################################
+#  Default Page and Other Tabs
+######################################################
 default_view:
   view: yes
+  icon: mdi:home
   entities:
-    - group.datetime
     - group.weather
+    - group.datetime
     - group.exterior
+    - group.livingroom
+    - group.garage
+automation_view:
+  name: 'Automation'
+  view: yes
+  icon: mdi:robot
+  entities:
+    - group.automation_override
+    - group.automation_modes
+exterior_view:
+  name: 'Exterior'
+  view: yes
+  icon: mdi:tree
+  entities:
+    - group.ext_accessories
+    - group.pathlighting
+    - group.pond
+basement_view:
+  name: 'Basement Controls'
+  view: yes
+  icon: mdi:washing-machine
+  entities:
+    - group.garage
+    - group.gameroom
+    - group.workshop
+    - group.laundryroom
+first_floor_view:
+  name: 'First Floor'
+  view: yes
+  icon: mdi:sofa
+  entities:
+    - group.livingroom
+    - group.familyroom
+    - group.diningarea
+    - group.kitchen
+second_floor_view:
+  name: 'Second Floor'
+  view: yes
+  icon: mdi:stairs
+  entities:
+    - group.masterbedroom
+    - group.guestbedroom
+    - group.office
+network_view:
+  name: 'Network Portal'
+  view: yes
+  icon: mdi:server
+  entities:
+    - group.self
+    - group.network_devices
+    - group.servers
+    - group.printers
+    - group.media_devices
+    - group.testing
 
+######################################################
+#  Miscellaneous Groups
+######################################################
 datetime:
   name: 'Clock'
   entities:
     - sensor.date
     - sensor.time
+weather:
+  name: 'Current Weather'
+  entities:
+    - sensor.dark_sky_summary_template
+    - sensor.dark_sky_temperature_template
+    - sensor.dark_sky_daily_high_low_template
+    - sensor.dark_sky_humidity
+    - sensor.dark_sky_precip_intensity
+    - sensor.dark_sky_wind_speed
+    - sensor.dark_sky_pressure
+automation_modes:
+  name: 'Special Modes'
+  control: hidden
+  entities:
+    - input_boolean.mode_away
+    - input_boolean.mode_date
+    - input_boolean.mode_guest
+automation_override:
+  name: 'Automation Override'
+  control: hidden
+  entities:
+    - input_boolean.disable_exterior_automation
+    - input_boolean.disable_all_automation
+testing:
+  name: 'System Testing'
+  control: hidden
+  entities:
+    - input_boolean.test_text_notification
 
-exterior:
-  name: 'Exterior'
+######################################################
+#  House Locations Alphabetically
+######################################################
+basement:
+  name: 'Basement'
+diningarea:
+  name: 'Dining Area'
+  entities:
+    - light.secondarygrowlights
+ext_accessories:
+  name: 'Exterior Accessories'
+  entities:
+    - light.porchlights
+    - switch.extchristmaslights
+pathlighting:
+  name: 'Path Lighting'
   entities:
     - light.plfront
     - light.plside
+pond:
+  name: 'Pond Controls'
+  entities:
     - light.plrear
-    - light.porchlight
-
+    - switch.waterfallpump
+familyroom:
+  name: 'Family Room'
+gameroom:
+  name: 'Game Room'
+garage:
+  name: 'Garage'
+  entities:
+    - script.toggle_garage_door
+    - binary_sensor.garagedoor_state
+guestbedroom:
+  name: 'Guest Room'
+kitchen:
+  name: 'Kitchen'
+laundryroom:
+  name: 'Laundry Area'
 livingroom:
   name: 'Living Room'
   entities:
     - light.lrsidelamp
     - light.lrdisplaycase
-
+    - light.maingrowlights
+masterbedroom:
+  name: 'Master Bedroom'
+  entities:
+    - switch.mbrsurgestrip
 office:
   name: 'Office'
   entities:
     - light.officedisplaycase
+workshop:
+  name: 'Workshop'
 
-weather:
-  name: 'Weather'
+######################################################
+#  Network
+######################################################
+network_devices:
+  name: 'Network Devices'
   entities:
-    - sensor.dark_sky_summary
-    - sensor.dark_sky_temperature
-    - sensor.dark_sky_precip_probability
-    - sensor.dark_sky_wind_speed
-    - sensor.dark_sky_cloud_cover
-    - sensor.dark_sky_humidity
-    - sensor.dark_sky_temperature_min
-    - sensor.dark_sky_temperature_max
+    - binary_sensor.wan_status
+    - binary_sensor.skynet_rt
+    - binary_sensor.skynet_sw1
+    - binary_sensor.skynet_sw2
+    - binary_sensor.skynet_ap1
+    - binary_sensor.skynet_ap2
+media_devices:
+  name: 'Media Devices'
+servers:
+  name: 'Servers'
+  entities:
+    - binary_sensor.skynet_cluster
+    - binary_sensor.skynet_serv
+    - binary_sensor.fullforce
+printers:
+  name: 'Printers'
+  entities:
+    - binary_sensor.printer_clp315w
+self:
+  name: 'Local System'
+  entities:
+    - sensor.hass_uptime
+    - sensor.hass_lastreboot
+    - sensor.hass_installedversion
+    - sensor.hass_latestversion

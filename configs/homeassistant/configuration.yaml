@@ -1,53 +1,44 @@
+######################################################
+#  Home Assistant Configuration
+######################################################
 homeassistant:
-  # Name of the location where Home Assistant is running
-  name: <REDACTED>
-  # Location required to calculate the time the sun rises and sets
-  latitude: <REDACTED>
-  longitude: <REDACTED>
-  # Impacts weather/sunrise data (altitude above sea level in meters)
-  elevation: <REDACTED>
-  # metric for Metric, imperial for Imperial
+  latitude: !secret hass_latitude
+  longitude: !secret hass_longitude
+  elevation: !secret hass_elevation
   unit_system: imperial
-  # Pick yours from here: http://en.wikipedia.org/wiki/List_of_tz_database_time_zones
-  time_zone: <REDACTED>
-  # Pick from C or F
+  time_zone: !secret hass_timezone
   temperature_unit: F
-  # Customizations
+  name: !secret hass_name
   customize: !include customize.yaml
-
-# Show links to resources in log and frontend
-#introduction:
 
 # Enables the frontend
 frontend:
+  #themes: !include themes/dark_cyan.yaml
+  themes: !include themes/dark_red.yaml
+  #themes: !include themes/dark_orange.yaml
 
 # Enables configuration UI
 config:
 
 http:
-  # Uncomment this to add a password (recommended!)
-  api_password: <REDACTED>
-  # Uncomment this if you are using SSL/TLS, running in Docker container, etc.
-  # base_url: sn-archimedes.skynetgds.space:8123
+  api_password: !secret hass_password
   trusted_networks:
     - 127.0.0.1
     - ::1
-    - 192.168.1.1/26
+    - 10.0.1.0/24
+    - 10.0.10.0/24
   ip_ban_enabled: True
   login_attempts_threshold: 5
 
 
 # Checks for available updates
-# Note: This component will send some information about your system to
-# the developers to assist with development of Home Assistant.
-# For more information, please see:
 # https://home-assistant.io/blog/2016/10/25/explaining-the-updater/
 updater:
-  # Optional, allows Home Assistant developers to focus on popular components.
-  # include_used_components: true
+  include_used_components: false
+  reporting: false
 
 # Discover some devices automatically
- discovery:
+# discovery:
 
 # Allows you to issue voice commands from the frontend in enabled browsers
 # conversation:
@@ -55,15 +46,12 @@ updater:
 # Enables support for tracking state changes over time
 history:
 
-# View all events in a logbook
-logbook:
+# Logbook of events customized and log level configuration
+logbook: !include logbook.yaml
+logger: !include logger.yaml
 
 # Track the sun
 sun:
-
-# Weather prediction
-# sensor:
-#   - platform: yr
 
 # Text to speech
 # tts:
@@ -71,15 +59,22 @@ sun:
 
 # Let homeassistant know about the local MQTT broker and client
 mqtt:
-  broker: 'localhost' #127.0.0.1
+  broker: 'localhost'
   port: 1883
-  client_id: 'ha'
-  username: '<REDACTED>'
-  password: '<REDACTED>'
-#  certificate: '/etc/mosquitto/certs/ca.crt'
+  client_id: !secret mqtt_clientid
+  username: !secret mqtt_user
+  password: !secret mqtt_password
 
+######################################################
+#  CONFIGURATION INCLUDES
+######################################################
 
 automation: !include_dir_list automation
-light: !include lights.yaml
-sensor: !include sensors.yaml
+binary_sensor: !include binary_sensor.yaml
+input_boolean: !include input_boolean.yaml
 group: !include groups.yaml
+light: !include lights.yaml
+notify: !include notify.yaml
+script: !include scripts.yaml
+sensor: !include sensors.yaml
+switch: !include switch.yaml

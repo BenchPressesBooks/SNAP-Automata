@@ -1,0 +1,43 @@
+##############################################################
+#  Notifications
+##############################################################
+notify_garage:
+  name: 'Garage Notification Enabled'
+  initial: on
+  icon: mdi:garage
+
+##############################################################
+#  Automation Modes
+##############################################################
+mode_away:
+  name: 'Away Mode'
+  initial: off
+  icon: mdi:wallet-travel
+mode_date:
+  name: 'Date Mode'
+  initial: off
+  icon: mdi:human-male-female
+mode_guest:
+  name: 'Guest Mode'
+  initial: off
+  icon: mdi:account-multiple
+
+##############################################################
+#  Automation Overrides
+##############################################################
+disable_exterior_automation:
+  name: 'Disable Exterior Light Automation'
+  initial: off
+  icon: mdi:lightbulb-outline
+
+disable_all_automation:
+  name: 'Disable All Home Automation'
+  initial: off
+
+##############################################################
+#  Diagnostics
+##############################################################
+test_text_notification:
+  name: 'Test Text Notification'
+  initial: off
+  icon: mdi:test-tube

@@ -1,21 +1,109 @@
-# lights
-light.plfront:
-  friendly_name: 'Path Light -  Zone 1 Front'
+######################################################
+#  Seasonal Controls
+######################################################
+switch.extchristmaslights:
+  friendly_name: 'Exterior Christmas Lights'
+light.maingrowlights:
+  friendly_name: 'Main Cactus Grow Lights'
+light.secondarygrowlights:
+  friendly_name: 'Secondary Cactus Grow Lights'
 
+######################################################
+#  System Sensors
+######################################################
+sensor.hass_uptime:
+  friendly_name: 'HAAS Uptime'
+  icon: mdi:av-timer
+sensor.hass_lastreboot:
+  friendly_name: 'System Uptime'
+  icon: mdi:restart
+sensor.hass_installedversion:
+  friendly_name: 'HASS Installed Version'
+  icon: mdi:code-tags
+sensor.hass_latestversion:
+  friendly_name: 'HASS Lastest Version'
+  icon: mdi:language-python-text
+
+######################################################
+#  Weather
+######################################################
+sensor.dark_sky_humidity:
+  friendly_name: Humidity
+sensor.dark_sky_precip_intensity:
+  friendly_name: Precipitation
+sensor.dark_sky_wind_speed:
+  friendly_name: Wind Speed
+sensor.dark_sky_pressure:
+  friendly_name: Pressure
+
+######################################################
+#  Lights
+######################################################
+light.plfront:
+  friendly_name: 'Path Lights - Zone 1 Front'
 light.plside:
   friendly_name: 'Path Lights - Zone 2 Side'
-
 light.plrear:
   friendly_name: 'Pond Lights - Zone 3 Rear'
-
 light.porchlights:
   friendly_name: 'Porch Ambiance Lights'
-
 light.lrsidelamp:
   friendly_name: 'Living Room Side Lamp'
-
 light.lrdisplaycase:
   friendly_name: 'Living Room Display Case'
-
 light.officedisplaycase:
   friendly_name: 'Office Display Case'
+
+######################################################
+#  Device Controls
+######################################################
+switch.mbrsurgestrip:
+  friendly_name: 'Master Bedroom Surge Protector'
+switch.garagedoor:
+  friendly_name: 'Activate Opener'
+
+
+######################################################
+#  Motor Controls
+######################################################
+switch.waterfallpump:
+  friendly_name: 'Waterfall Pump'
+  icon: mdi:water
+
+######################################################
+#  Binary Sensors
+######################################################
+binary_sensor.garagedoor_state:
+  friendly_name: 'Garage Door Status'
+  icon: mdi:garage
+binary_sensor.skynet_rt:
+  friendly_name: 'Skynet-RT'
+  icon: mdi:security-network
+binary_sensor.skynet_sw1:
+  friendly_name: 'Skynet-SW1'
+  icon: mdi:switch
+binary_sensor.skynet_sw2:
+  friendly_name: 'Skynet-SW2'
+  icon: mdi:switch
+binary_sensor.skynet_ap1:
+  friendly_name: 'Skynet-AP1'
+  icon: mdi:access-point-network
+binary_sensor.skynet_ap2:
+  friendly_name: 'Skynet-AP2'
+  icon: mdi:access-point-network
+binary_sensor.skynet_cluster:
+  friendly_name: 'Skynet-Cluster'
+  icon: mdi:server-security
+binary_sensor.skynet_serv:
+  friendly_name: 'Skynet-Serv'
+  icon: mdi:server
+binary_sensor.fullforce:
+  friendly_name: 'FullForce Applications'
+  icon: mdi:web
+
+######################################################
+# Scripts
+######################################################
+script.toggle_garage_door:
+  friendly_name: 'Toggle Garage Door'
+  icon: mdi:camera-switch

@@ -1,16 +1,124 @@
+######################################################
+#  Weather
+######################################################
 - platform: darksky
-  api_key: <your_api_key>
+  api_key: !secret darksky_apikey
   monitored_conditions:
     - summary
-    - precip_probability
     - temperature
-    - wind_speed
-    - cloud_cover
-    - humidity
-    - temperature_min
+    - hourly_summary
     - temperature_max
+    - wind_speed
+    - humidity
+    - pressure
+    - temperature_min
+    - precip_intensity
+    - icon
 
+######################################################
+#  Date and Time
+######################################################
 - platform: time_date
   display_options:
     - 'date'
     - 'time'
+
+######################################################
+#  System Information
+######################################################
+- platform: command_line
+  command: source /srv/homeassistant/bin/activate; python3 -c "import requests; print(requests.get('https://pypi.python.org/pypi/homeassistant/json').json()['info']['version'])"
+  name: 'hass_latestversion'
+  scan_interval: 3600
+
+- platform: command_line
+  command: /srv/homeassistant/bin/hass --version
+  name: 'hass_installedversion'
+  scan_interval: 3600
+
+- platform: command_line
+  name: 'hass_lastreboot'
+  command: cat /proc/uptime | awk '{printf "%0.f", $1}'
+  scan_interval: 60
+  value_template: >-
+    {% set uptime = value | int %}
+    {% set seconds = uptime % 60 %}
+    {% set minutes = ((uptime % 3600) / 60) | int %}
+    {% set hours = ((uptime % 86400) / 3600) | int %}
+    {% set days = (uptime / 86400) | int %}
+    {%- if days > 0 -%}
+      {%- if days == 1 -%}
+        1 day
+      {%- else -%}
+        {{ days }} days
+      {%- endif -%}
+      {{ ', ' }}
+    {%- endif -%}
+    {{ '%02d' % hours }}:{{ '%02d' % minutes }}
+
+- platform: command_line
+  name: 'hass_uptime'
+  command: echo "$(($(date +%s) - $(date -d "$(head -n1 /home/homeassistant/.homeassistant/home-assistant.log | cut -d' ' -f-2)" +%s)))"
+  scan_interval: 60
+  value_template: >-
+    {% set uptime = value | int %}
+    {% set seconds = uptime % 60 %}
+    {% set minutes = ((uptime % 3600) / 60) | int %}
+    {% set hours = ((uptime % 86400) / 3600) | int %}
+    {% set days = (uptime / 86400) | int %}
+    {%- if days > 0 -%}
+      {%- if days == 1 -%}
+        1 day
+      {%- else -%}
+        {{ days }} days
+      {%- endif -%}
+      {{ ', ' }}
+    {%- endif -%}
+    {{ '%02d' % hours }}:{{ '%02d' % minutes }}
+
+######################################################
+#  Templates
+######################################################
+- platform: template
+  sensors:
+    dark_sky_summary_template:
+      value_template: "{{ states('sensor.dark_sky_summary') }}"
+      icon_template: >
+        {% if is_state('sensor.dark_sky_icon', 'clear-day') %}
+          mdi:weather-sunny
+        {% elif is_state('sensor.dark_sky_icon', 'clear-night') %}
+          mdi:weather-night
+        {% elif is_state('sensor.dark_sky_icon', 'rain') %}
+          mdi:weather-rainy
+        {% elif is_state('sensor.dark_sky_icon', 'snow') %}
+          mdi:weather-snowy
+        {% elif is_state('sensor.dark_sky_icon', 'sleet') %}
+          mdi:weather-snowy-rainy
+        {% elif is_state('sensor.dark_sky_icon', 'wind') %}
+          mdi:weather-windy-variant
+        {% elif is_state('sensor.dark_sky_icon', 'fog') %}
+          mdi:weather-fog
+        {% elif is_state('sensor.dark_sky_icon', 'cloudy') %}
+          mdi:weather-cloudy
+        {% elif is_state('sensor.dark_sky_icon', 'partly-cloudy-day') or is_state('sensor.dark_sky_icon', 'partly-cloudy-night') %}
+          mdi:weather-partlycloudy
+        {% elif is_state('sensor.dark_sky_icon', 'hail') %}
+          mdi:weather-hail
+        {% elif is_state('sensor.dark_sky_icon', 'thunderstorm') %}
+          mdi:weather-lightning
+        {% else %}
+          mdi:help-circle
+        {% endif %}
+      friendly_name: "Current Conditions"
+
+    dark_sky_temperature_template:
+      value_template: "{{ states('sensor.dark_sky_temperature') }}"
+      icon_template: mdi:thermometer-lines
+      friendly_name: "Current Temperature"
+      unit_of_measurement: '°F'
+
+    dark_sky_daily_high_low_template:
+      value_template: "{{ states('sensor.dark_sky_daily_high_temperature') }} / {{ states('sensor.dark_sky_daily_low_temperature') }}"
+      icon_template: mdi:contrast
+      friendly_name: 'High / Low Temperature'
+      unit_of_measurement: "°F"

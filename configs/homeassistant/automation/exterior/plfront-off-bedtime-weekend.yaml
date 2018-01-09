@@ -1,0 +1,17 @@
+##########################################################
+#  Turn Off Front Path Lights Before Bed Weekend
+##########################################################
+alias: 'Turn off front path lights at 2330 hours'
+trigger:
+  - platform: time
+    at: '23:30:00'
+condition:
+- condition: time
+  weekday:
+    - fri
+    - sat
+action:
+  - service: homeassistant.turn_off
+    entity_id:
+      - light.plfront
+

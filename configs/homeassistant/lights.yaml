@@ -28,7 +28,7 @@
 
 # Living Room Side Lamp
 - platform: mqtt
-  name: 'lrtablelamp'
+  name: 'lrsidelamp'
   state_topic: 'firstfloor/lrsidelamp/status'
   command_topic: 'firstfloor/lrsidelamp/switch'
 
@@ -43,3 +43,15 @@
   name: 'officedisplaycase'
   state_topic: 'secondfloor/officedisplaycase/status'
   command_topic: 'secondfloor/officedisplaycase/switch'
+
+# Winter Cactus Grow Lights
+- platform: mqtt
+  name: 'maingrowlights'
+  state_topic: 'firstfloor/maingrowlights/status'
+  command_topic: 'firstfloor/maingrowlights/switch'
+
+# Winter Cactus Grow Lights 2
+- platform: mqtt
+  name: 'secondarygrowlights'
+  state_topic: 'firstfloor/secondarygrowlights/status'
+  command_topic: 'firstfloor/secondarygrowlights/switch'

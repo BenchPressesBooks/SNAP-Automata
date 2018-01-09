@@ -1,0 +1,12 @@
+##########################################################
+#  Turn Off Front Path Lights At Sunrise
+##########################################################
+alias: 'Turn off front path lights at sunrise'
+trigger:
+  - platform: sun
+    event: sunrise
+action:
+  - service: homeassistant.turn_off
+    entity_id:
+      - light.plfront
+

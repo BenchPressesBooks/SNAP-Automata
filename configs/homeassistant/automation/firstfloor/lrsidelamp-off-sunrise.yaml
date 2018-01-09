@@ -1,0 +1,12 @@
+##########################################################
+#  Turn Off Living Room Side Lamp At Sunrise
+##########################################################
+alias: 'Turn off living room side lamp at sunrise'
+trigger:
+  - platform: sun
+    event: sunrise
+action:
+  - service: homeassistant.turn_off
+    entity_id:
+      - light.lrsidelamp
+

@@ -1,0 +1,16 @@
+##########################################################
+#  Turn On Master Bedroom Surge Strip Before Bed
+##########################################################
+alias: 'Turn on master bedroom surge strip before bed'
+trigger:
+  - platform: time
+    at: '22:30:00'
+condition:
+  - condition: state
+    entity_id: input_boolean.mode_away
+    state: 'off'
+action:
+  - service: light.turn_on
+    entity_id:
+      - switch.mbrsurgestrip
+

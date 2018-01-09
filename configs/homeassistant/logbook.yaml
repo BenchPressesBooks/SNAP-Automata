@@ -1,0 +1,9 @@
+######################################################
+#  Logbook configuration
+######################################################
+  exclude:
+    entities:
+      - sensor.date
+      - sensor.time
+    domains:
+      - group

@@ -1,0 +1,12 @@
+##########################################################
+#  Turn On Front Path Lights at Sunset
+##########################################################
+alias: 'Turn on front path lights at sunset'
+trigger:
+  - platform: sun
+    event: sunset
+action:
+  - service: homeassistant.turn_on
+    entity_id:
+      - light.plfront
+

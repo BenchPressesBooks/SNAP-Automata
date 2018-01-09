@@ -1,0 +1,18 @@
+##########################################################
+#  Garage Door - State opened while away
+##########################################################
+alias: 'Notification - Garage door opened while away'
+trigger:
+  - platform: state
+    entity_id:
+      - binary_sensor.garagedoor_state
+    to: 'on'
+condition:
+  - condition: state
+    entity_id: input_boolean.mode_away
+    state: 'on'
+action:
+  - service: notify.pb_notify
+    data:
+      title: "URGENT: Garage Door OPENED While Away"
+      message: "The garage door has been OPENED. The house is no longer secure."

@@ -1,8 +1,0 @@
-alias: 'Turn on front path lights at 0545 hours'
-trigger:
-  platform: time
-  at: '05:45:00'
-action:
-  service: light.turn_on
-  entity_id: light.plfront
-

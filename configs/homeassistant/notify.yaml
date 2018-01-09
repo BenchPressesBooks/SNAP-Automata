@@ -1,0 +1,6 @@
+######################################################
+#  Pushbullet notification service
+######################################################
+- platform: pushbullet
+  name: 'pb_notify'
+  api_key: !secret pushbullet_apikey

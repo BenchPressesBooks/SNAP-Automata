@@ -1,0 +1,18 @@
+##########################################################
+#  Notification Testing
+##########################################################
+alias: 'Notification - Test Pushbullet'
+trigger:
+  - platform: state
+    entity_id:
+      - input_boolean.test_text_notification
+    from: 'off'
+    to: 'on'
+action:
+  - service: notify.pb_notify
+    data:
+      title: "DEBUG: Home Assistant Test"
+      message: "This is a test of the Home Assistant API connection with PushBullet."
+  - service: homeassistant.turn_off
+    entity_id:
+      - input_boolean.test_text_notification
