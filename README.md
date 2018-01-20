@@ -39,16 +39,19 @@ Software Infrastructure:
 	
 	
 ## Automation
-For the time being only lighting has been implemented but I eventually plan to incorporate mechanical devices and sensors.
 
-Rules:
-
-- Front path lights turn on before leaving for work and off at sunrise
+Exterior Rules:
+- Front path lights turn on before leaving for work and off at sunrise but only on weekdays
 - Front path lights turn on again at sundown and turn off at a set time
-- Side path lights, pond lights, and rear porch lights only turn on when manually triggered
-- All exterior lights turn off at midnight regardless of how they were triggered
-- First floor side lamp follows schedule of front path lights
-- Display cases are triggered manually and will stay lit for two hours. I will eventually turn these into presence devices
+- All other permanent exterior devices turn on only when manually triggered
+- All exterior devices turn off at midnight regardless of how they were triggered (unless automation override is enabled)
+- Christmas lights (when installed) come on 30 min before sunset and run until 23:00
+
+Interior Rules:
+- Living room side lamp follows schedule of front path lights but turns on 30 minutes early in the morning and off 30 minutes late at night
+- Display cases are triggered manually or by party mode. I will eventually turn these into presence devices
+- Cactus and Succulent grow lights turn on 1 hour after sunrise, turn off 1 hour before sunset to supplement sunlight (during winter)
+
 
 ## Controller Configuration
 ### Home Assistant
