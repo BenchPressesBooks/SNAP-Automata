@@ -1,5 +1,5 @@
 ######################################################
-#  Seasonal Controls
+#  Seasonal Device Controls
 ######################################################
 switch.extchristmaslights:
   friendly_name: 'Exterior Christmas Lights'
@@ -9,59 +9,36 @@ light.secondarygrowlights:
   friendly_name: 'Secondary Cactus Grow Lights'
 
 ######################################################
-#  System Sensors
-######################################################
-sensor.hass_uptime:
-  friendly_name: 'HAAS Uptime'
-  icon: mdi:av-timer
-sensor.hass_lastreboot:
-  friendly_name: 'System Uptime'
-  icon: mdi:restart
-sensor.hass_installedversion:
-  friendly_name: 'HASS Installed Version'
-  icon: mdi:code-tags
-sensor.hass_latestversion:
-  friendly_name: 'HASS Lastest Version'
-  icon: mdi:language-python-text
-
-######################################################
-#  Weather
-######################################################
-sensor.dark_sky_humidity:
-  friendly_name: Humidity
-sensor.dark_sky_precip_intensity:
-  friendly_name: Precipitation
-sensor.dark_sky_wind_speed:
-  friendly_name: Wind Speed
-sensor.dark_sky_pressure:
-  friendly_name: Pressure
-
-######################################################
-#  Lights
+#  Light Controls
 ######################################################
 light.plfront:
-  friendly_name: 'Path Lights - Zone 1 Front'
+  friendly_name: 'Zone 1 - Front'
 light.plside:
-  friendly_name: 'Path Lights - Zone 2 Side'
+  friendly_name: 'Zone 2 - Side'
 light.plrear:
-  friendly_name: 'Pond Lights - Zone 3 Rear'
+  friendly_name: 'Ambiance Lighting'
 light.porchlights:
   friendly_name: 'Porch Ambiance Lights'
 light.lrsidelamp:
-  friendly_name: 'Living Room Side Lamp'
+  friendly_name: 'Side Lamp'
 light.lrdisplaycase:
-  friendly_name: 'Living Room Display Case'
+  friendly_name: 'Display Case'
 light.officedisplaycase:
-  friendly_name: 'Office Display Case'
-
+  friendly_name: 'Display Case'
+light.fr_main_lights_17:
+  friendly_name: 'Main Lights'
 ######################################################
-#  Device Controls
+#  Power Delivery Controls
 ######################################################
 switch.mbrsurgestrip:
-  friendly_name: 'Master Bedroom Surge Protector'
+  friendly_name: 'Surge Protector'
+switch.gbrsurgestrip:
+  friendly_name: 'Surge Protector'
 switch.garagedoor:
   friendly_name: 'Activate Opener'
-
+switch.fr_partition_outlet_14:
+  friendly_name: 'Side Lamp'
+  icon: mdi:lightbulb
 
 ######################################################
 #  Motor Controls
@@ -69,13 +46,42 @@ switch.garagedoor:
 switch.waterfallpump:
   friendly_name: 'Waterfall Pump'
   icon: mdi:water
+switch.main_water_shutoff_12:
+  friendly_name: 'Main Water Valve'
 
 ######################################################
-#  Binary Sensors
+#  Variable Output Controls
+######################################################
+input_number.fr_main_light_slider:
+  friendly_name: 'Main Light Level'
+  icon: mdi:settings-brightness
+
+######################################################
+#  Multifunction Controls
+######################################################
+climate.thermostat770ca7:
+  friendly_name: 'First Floor Thermostat'
+
+######################################################
+#  Physical Sensors
 ######################################################
 binary_sensor.garagedoor_state:
-  friendly_name: 'Garage Door Status'
+  friendly_name: 'Garage Door'
   icon: mdi:garage
+binary_sensor.fr_motion_template:
+  friendly_name: 'Family Room Motion'
+binary_sensor.lr_motion_template:
+  friendly_name: 'Living Room Motion'
+binary_sensor.entry_door_template:
+  friendly_name: 'Entry Door'
+binary_sensor.back_door_template:
+  friendly_name: 'Back Door'
+binary_sensor.basement_leak_sensor_template:
+  friendly_name: 'Leak Sensor'
+
+######################################################
+#  Other Sensors
+######################################################
 binary_sensor.skynet_rt:
   friendly_name: 'Skynet-RT'
   icon: mdi:security-network
@@ -94,6 +100,9 @@ binary_sensor.skynet_ap2:
 binary_sensor.skynet_cluster:
   friendly_name: 'Skynet-Cluster'
   icon: mdi:server-security
+binary_sensor.skynet_vcluster:
+  friendly_name: 'Skynet-VCluster'
+  icon: mdi:server-security
 binary_sensor.skynet_serv:
   friendly_name: 'Skynet-Serv'
   icon: mdi:server
@@ -102,8 +111,54 @@ binary_sensor.fullforce:
   icon: mdi:web
 
 ######################################################
+#  Power Sensors
+######################################################
+sensor.low_battery:
+  friendly_name: 'Low Battery'
+sensor.critical_battery:
+  friendly_name: 'Critical Battery'
+sensor.fr_motion_battery:
+  friendly_name: 'Family Room Motion'
+sensor.lr_motion_battery:
+  friendly_name: 'Living Room Motion'
+sensor.entry_door_battery:
+  friendly_name: 'Entry Door'
+sensor.back_door_battery:
+  friendly_name: 'Back Door'
+sensor.basement_leak_sensor_battery:
+  friendly_name: 'Basement Leak Sensor'
+
+######################################################
+#  Weather
+######################################################
+sensor.dark_sky_humidity:
+  friendly_name: 'Humidity'
+sensor.dark_sky_precip_intensity:
+  friendly_name: 'Precipitation'
+sensor.dark_sky_wind_speed:
+  friendly_name: 'Wind Speed'
+sensor.dark_sky_pressure:
+  friendly_name: 'Pressure'
+
+######################################################
 # Scripts
 ######################################################
 script.toggle_garage_door:
   friendly_name: 'Toggle Garage Door'
   icon: mdi:camera-switch
+
+######################################################
+#  System Sensors
+######################################################
+sensor.hass_uptime:
+  friendly_name: 'HAAS Uptime'
+  icon: mdi:av-timer
+sensor.hass_lastreboot:
+  friendly_name: 'System Uptime'
+  icon: mdi:restart
+sensor.hass_installedversion:
+  friendly_name: 'HASS Installed Version'
+  icon: mdi:code-tags
+sensor.hass_latestversion:
+  friendly_name: 'HASS Lastest Version'
+  icon: mdi:language-python-text

@@ -1,0 +1,122 @@
+##########################################################
+#  Turn On Living Room Side Lamp When Going To Work
+##########################################################
+- alias: 'Turn on living room table lamp before work'
+  trigger:
+    - platform: time
+      at: '06:30:00'
+  condition:
+    condition: and
+    conditions:
+      - condition: time
+        weekday:
+          - mon
+          - tue
+          - wed
+          - thu
+          - fri
+      - condition: state
+        entity_id: sun.sun
+        state: 'below_horizon'
+  action:
+    - service: homeassistant.turn_on
+      entity_id:
+        - light.lrsidelamp
+
+##########################################################
+#  Turn On Living Room Side Lamp at Sunset
+##########################################################
+- alias: 'Turn on living room side lamp at sunset'
+  trigger:
+    - platform: sun
+      event: sunset
+      offset: "-00:30:00"
+  action:
+    - service: homeassistant.turn_on
+      entity_id:
+        - light.lrsidelamp
+
+##########################################################
+#  Turn On Living Room Side Lamp With Motion or Entry
+##########################################################
+- alias: 'Turn on lr lamp after dark if motion or entry'
+  trigger:
+    - platform: state
+      entity_id:
+        - binary_sensor.entry_door_sensor_5
+        - binary_sensor.lr_motion_sensor_9
+      to: 'on'
+  condition:
+    condition: and
+    conditions:
+      - condition: or
+        conditions:
+          - condition: state
+            entity_id: sun.sun
+            state: 'below_horizon'
+          - condition: state
+            entity_id: sensor.dark_sky_icon
+            state: 'rain'
+      - condition: state
+        entity_id: light.lrsidelamp
+        state: 'off'
+      - condition: state
+        entity_id: input_boolean.mode_away
+        state: 'off'
+  action:
+    - service: homeassistant.turn_on
+      entity_id:
+        - light.lrsidelamp
+        - input_boolean.auto_lrsidelamp
+
+##########################################################
+#  Turn Off Living Room Side Lamp At Sunrise
+##########################################################
+- alias: 'Turn off living room side lamp at sunrise'
+  trigger:
+    - platform: sun
+      event: sunrise
+  action:
+    - service: homeassistant.turn_off
+      entity_id:
+        - light.lrsidelamp
+
+##########################################################
+#  Turn Off Living Room Side Lamp Before Bed
+##########################################################
+- alias: 'Turn off living room side lamp at 2300 hours'
+  trigger:
+    - platform: time
+      at: '23:00:00'
+  action:
+    - service: homeassistant.turn_off
+      entity_id:
+        - light.lrsidelamp
+
+##########################################################
+#  Turn Off Living Room Side Lamp With No Motion
+##########################################################
+- alias: 'Turn off lr lamp after no motion'
+  trigger:
+    - platform: state
+      entity_id:
+        - binary_sensor.lr_motion_sensor_9
+      to: 'off'
+      for:
+         minutes: 5
+  condition:
+    condition: and
+    conditions:
+      - condition: state
+        entity_id: input_boolean.auto_lrsidelamp
+        state: 'on'
+      - condition: state
+        entity_id: light.lrsidelamp
+        state: 'on'
+#      - condition: template
+#        value_template: "{% if not is_state('sensor.dark_sky_icon', 'rain') %}true{% endif %}"
+  action:
+    - service: homeassistant.turn_off
+      entity_id:
+        - light.lrsidelamp
+        - input_boolean.auto_lrsidelamp

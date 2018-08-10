@@ -5,13 +5,15 @@ notify_garage:
   name: 'Garage Notification Enabled'
   initial: on
   icon: mdi:garage
+security_alarm:
+  name: 'Sound alarm when on'
+  initial: off
 
 ##############################################################
 #  Automation Modes
 ##############################################################
 mode_away:
   name: 'Away Mode'
-  initial: off
   icon: mdi:wallet-travel
 mode_date:
   name: 'Date Mode'
@@ -21,6 +23,18 @@ mode_guest:
   name: 'Guest Mode'
   initial: off
   icon: mdi:account-multiple
+
+##############################################################
+#  Automation Triggers
+##############################################################
+auto_waterfallpump:
+  initial: off
+auto_plfront:
+  initial: off
+auto_lrsidelamp:
+  initial: off
+auto_frsidelamp:
+  initial: off
 
 ##############################################################
 #  Automation Overrides

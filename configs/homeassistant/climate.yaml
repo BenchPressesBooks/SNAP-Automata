@@ -1,0 +1,4 @@
+- platform: radiotherm
+  host: !secret skynet_therm
+  away_temperature_heat: 55
+  away_temperature_cool: 85

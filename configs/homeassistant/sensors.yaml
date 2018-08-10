@@ -7,11 +7,11 @@
     - summary
     - temperature
     - hourly_summary
-    - temperature_max
+    - temperature_high
     - wind_speed
     - humidity
     - pressure
-    - temperature_min
+    - temperature_low
     - precip_intensity
     - icon
 
@@ -118,7 +118,98 @@
       unit_of_measurement: '°F'
 
     dark_sky_daily_high_low_template:
-      value_template: "{{ states('sensor.dark_sky_daily_high_temperature') }} / {{ states('sensor.dark_sky_daily_low_temperature') }}"
+      value_template: "{{ states('sensor.dark_sky_daytime_high_temperature') }} / {{ states('sensor.dark_sky_overnight_low_temperature') }}"
       icon_template: mdi:contrast
       friendly_name: 'High / Low Temperature'
       unit_of_measurement: "°F"
+
+- platform: template
+  sensors:
+    fr_main_light_intensity:
+      value_template: '{{ states.light.fr_main_lights_17.attributes.brightness | int / 2.55 }}'
+      unit_of_measurement: '%'
+
+######################################################
+#  Device Monitoring
+######################################################
+- platform: template
+  sensors:
+    low_battery:
+      value_template: >
+        {%- set threshold = 21 -%}
+        {%- set domains = ['light', 'switch', 'sensor', 'zwave', 'lock'] -%}
+        {%- for domain in domains -%}
+        {%- for item in states[domain] if ((item.attributes.battery_level is defined and item.attributes['battery_level'] | int < threshold) or ("battery" in item.name | lower and ((item.state | int < threshold and item.state|int != 0) or item.state | lower == "low" or item.state | lower == "unknown"))) -%}
+            {{ item.attributes.friendly_name }}{%- if not loop.last %}, {% endif -%}
+        {%- endfor -%}
+        {%- endfor -%}
+
+    critical_battery:
+      value_template: >
+        {%- set threshold = 11 -%}
+        {%- set domains = ['light', 'switch', 'sensor', 'zwave', 'lock'] -%}
+        {%- for domain in domains -%}
+        {%- for item in states[domain] if ((item.attributes.battery_level is defined and item.attributes['battery_level'] | int < threshold) or ("battery" in item.name | lower and ((item.state | int < threshold and item.state|int != 0) or item.state | lower == "low" or item.state | lower == "unknown"))) -%}
+            {{ item.attributes.friendly_name }}{%- if not loop.last %}, {% endif -%}
+        {%- endfor -%}
+        {%- endfor -%}
+
+    fr_motion_battery:
+      value_template: "{{ states.switch.fr_motion_detector_10.attributes.battery_level }}"
+      unit_of_measurement: "%"
+      icon_template: >
+        {%- if 'states.switch.fr_motion_detector_10.attributes.battery_level' > '90' -%}
+          mdi:battery
+        {%- elif 'states.switch.fr_motion_detector_10.attributes.battery_level' < '10' -%}
+          mdi:battery-outline
+        {%- else -%}
+          mdi:battery-{{(states.switch.fr_motion_detector_10.attributes.battery_level|float / 10)|round*10}}
+        {%- endif -%}
+
+    lr_motion_battery:
+      value_template: "{{ states.switch.lr_motion_detector_8.attributes.battery_level }}"
+      unit_of_measurement: "%"
+      icon_template: >
+        {%- if 'states.switch.lr_motion_detector_8.attributes.battery_level' > '90' -%}
+          mdi:battery
+        {%- elif 'states.switch.lr_motion_detector_8.attributes.battery_level' < '10' -%}
+          mdi:battery-outline
+        {%- else -%}
+          mdi:battery-{{(states.switch.lr_motion_detector_8.attributes.battery_level|float / 10)|round*10}}
+        {%- endif -%}
+
+    entry_door_battery:
+      value_template: "{{ states.switch.entry_door_sensor_5.attributes.battery_level }}"
+      unit_of_measurement: "%"
+      icon_template: >
+        {%- if 'states.switch.entry_door_sensor_5.attributes.battery_level' > '90' -%}
+          mdi:battery
+        {%- elif 'states.switch.entry_door_sensor_5.attributes.battery_level' < '10' -%}
+          mdi:battery-outline
+        {%- else -%}
+          mdi:battery-{{(states.switch.entry_door_sensor_5.attributes.battery_level|float / 10)|round*10}}
+        {%- endif -%}
+
+    back_door_battery:
+      value_template: "{{ states.switch.back_door_sensor_18.attributes.battery_level }}"
+      unit_of_measurement: "%"
+      icon_template: >
+        {%- if 'states.switch.back_door_sensor_18.attributes.battery_level' > '90' -%}
+          mdi:battery
+        {%- elif 'states.switch.back_door_sensor_18.attributes.battery_level' < '10' -%}
+          mdi:battery-outline
+        {%- else -%}
+          mdi:battery-{{(states.switch.back_door_sensor_18.attributes.battery_level|float / 10)|round*10}}
+        {%- endif -%}
+
+    basement_leak_sensor_battery:
+      value_template: "{{ states.switch.basement_leak_sensor_16.attributes.battery_level }}"
+      unit_of_measurement: "%"
+      icon_template: >
+        {%- if 'states.switch.basement_leak_sensor_16.attributes.battery_level' > '90' -%}
+          mdi:battery
+        {%- elif 'states.switch.basement_leak_sensor_16.attributes.battery_level' < '10' -%}
+          mdi:battery-outline
+        {%- else -%}
+          mdi:battery-{{(states.switch.basement_leak_sensor_16.attributes.battery_level|float / 10)|round*10}}
+        {%- endif -%}

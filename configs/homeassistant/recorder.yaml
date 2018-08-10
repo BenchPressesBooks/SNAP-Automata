@@ -1,0 +1,19 @@
+######################################################
+#  Recorder configuration
+######################################################
+  db_url: !secret db_connect
+  purge_keep_days: 14
+  purge_interval: 1
+  include:
+    entities:
+      - sensor.dark_sky_temperature_template
+      - sensor.dark_sky_humidity
+      - sensor.dark_sky_precip_intensity
+      - sensor.dark_sky_wind_speed
+      - sensor.dark_sky_pressure
+    domains:
+      - binary_sensor
+      - input_boolean
+      - light
+      - switch
+      - automation

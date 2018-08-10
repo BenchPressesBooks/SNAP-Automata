@@ -1,0 +1,27 @@
+##########################################################
+#  Turn On Master Bedroom Surge Strip Before Bed
+##########################################################
+- alias: 'Turn on master bedroom surge strip before bed'
+  trigger:
+    - platform: time
+      at: '22:30:00'
+  condition:
+    - condition: state
+      entity_id: input_boolean.mode_away
+      state: 'off'
+  action:
+    - service: homeassistant.turn_on
+      entity_id:
+        - switch.mbrsurgestrip
+
+##########################################################
+#  Turn Off Master Bedroom Surge Strip After Getting Up
+##########################################################
+- alias: 'Turn off master bedroom surge strip after getting up'
+  trigger:
+    - platform: time
+      at: '9:00:00'
+  action:
+    - service: homeassistant.turn_off
+      entity_id:
+        - switch.mbrsurgestrip

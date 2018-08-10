@@ -1,0 +1,37 @@
+- alias: 'Low Battery Alert'
+  trigger:
+    - platform: time
+      at: '18:00:00'
+  condition:
+    - condition: template
+      value_template: "{% if states('sensor.low_battery') %}true{% endif %}"
+  action:
+    - service: persistent_notification.create
+      data_template:
+        title: Low Battery Level
+        message: "Attention! The following devices will soon require battery replacement:\n*{{ states('sensor.low_battery') }}*"
+        notification_id: low-battery-alert
+
+
+- alias: 'Critical Battery Alert'
+  trigger:
+    - platform: time
+      at: '08:00:00'
+    - platform: time
+      at: '18:00:30'
+  condition:
+    - condition: template
+      value_template: "{% if states('sensor.critical_battery') %}true{% endif %}"
+  action:
+    - service: notify.pb_notify
+      data:
+        title: "URGENT: Critical Battery Level Reached"
+        message: "The following devices require immediate battery replacement: {{ states('sensor.low_battery') }}*"
+    - service: persistent_notification.create
+      data_template:
+        title: Critical Battery Level
+        message: "**WARNING!** The following devices require *immediate* battery replacement:\n*{{ states('sensor.critical_battery') }}*"
+        notification_id: critical-battery-alert
+    - service: persistent_notification.dismiss
+      data:
+        notification_id: "low-battery-alert"

@@ -5,10 +5,11 @@
 
 default: warn
 logs:
-  homeassistant.core: error
+  homeassistant.core: warning
   homeassistant.components.automation: warn
   homeassistant.components.discovery: warn
   homeassistant.components.http: warn
+  homeassistnat.components.mqtt: info
   homeassistant.components.media_player: warn
   homeassistant.components.recorder: error
   homeassistant.components.sensor.darksky: warn

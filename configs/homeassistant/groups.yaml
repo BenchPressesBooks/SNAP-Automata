@@ -6,10 +6,10 @@ default_view:
   icon: mdi:home
   entities:
     - group.weather
+    - group.commonitems
+    - group.securityglance
+    - climate.thermostat770ca7
     - group.datetime
-    - group.exterior
-    - group.livingroom
-    - group.garage
 automation_view:
   name: 'Automation'
   view: yes
@@ -31,6 +31,7 @@ basement_view:
   icon: mdi:washing-machine
   entities:
     - group.garage
+    - group.basementworkarea
     - group.gameroom
     - group.workshop
     - group.laundryroom
@@ -51,6 +52,14 @@ second_floor_view:
     - group.masterbedroom
     - group.guestbedroom
     - group.office
+security_system_view:
+  name: 'Facility Security Report'
+  view: yes
+  icon: mdi:cctv
+  entities:
+    - group.basesecurity
+    - group.firstsecurity
+    - group.powerlevels
 network_view:
   name: 'Network Portal'
   view: yes
@@ -66,6 +75,16 @@ network_view:
 ######################################################
 #  Miscellaneous Groups
 ######################################################
+commonitems:
+  name: 'Quick Access'
+  entities:
+    - light.lrsidelamp
+    - switch.fr_partition_outlet_14
+    - light.plfront
+    - light.porchlights
+    - light.plrear
+    - switch.waterfallpump
+    - script.toggle_garage_door
 datetime:
   name: 'Clock'
   entities:
@@ -103,8 +122,11 @@ testing:
 ######################################################
 #  House Locations Alphabetically
 ######################################################
-basement:
-  name: 'Basement'
+basementworkarea:
+  name: 'Work Area'
+  entities:
+    - binary_sensor.basement_leak_sensor_template
+    - switch.main_water_shutoff_12
 diningarea:
   name: 'Dining Area'
   entities:
@@ -126,6 +148,11 @@ pond:
     - switch.waterfallpump
 familyroom:
   name: 'Family Room'
+  entities:
+    - switch.fr_partition_outlet_14
+    - light.fr_main_lights_17
+    - input_number.fr_main_light_slider
+
 gameroom:
   name: 'Game Room'
 garage:
@@ -135,6 +162,9 @@ garage:
     - binary_sensor.garagedoor_state
 guestbedroom:
   name: 'Guest Room'
+  entities:
+    - switch.gbrsurgestrip
+    - media_player.bradens_roku_3__guest_bedroom
 kitchen:
   name: 'Kitchen'
 laundryroom:
@@ -149,6 +179,8 @@ masterbedroom:
   name: 'Master Bedroom'
   entities:
     - switch.mbrsurgestrip
+    - switch.master_bed_outlet_19
+    - media_player.bradens_roku_3__master_bedroom
 office:
   name: 'Office'
   entities:
@@ -162,18 +194,20 @@ workshop:
 network_devices:
   name: 'Network Devices'
   entities:
-    - binary_sensor.wan_status
+    - binary_sensor.wan
     - binary_sensor.skynet_rt
     - binary_sensor.skynet_sw1
     - binary_sensor.skynet_sw2
     - binary_sensor.skynet_ap1
     - binary_sensor.skynet_ap2
+    - binary_sensor.skynet_aap
 media_devices:
   name: 'Media Devices'
 servers:
   name: 'Servers'
   entities:
     - binary_sensor.skynet_cluster
+    - binary_sensor.skynet_vcluster
     - binary_sensor.skynet_serv
     - binary_sensor.fullforce
 printers:
@@ -187,3 +221,38 @@ self:
     - sensor.hass_lastreboot
     - sensor.hass_installedversion
     - sensor.hass_latestversion
+
+######################################################
+#  Security System
+######################################################
+securityglance:
+  name: 'Security System'
+  entities:
+    - input_boolean.mode_away
+    - binary_sensor.garagedoor_state
+    - binary_sensor.entry_door_template
+    - binary_sensor.back_door_template
+    - binary_sensor.fr_motion_template
+    - binary_sensor.lr_motion_template
+
+basesecurity:
+  name: 'Basement'
+  entities:
+    - binary_sensor.garagedoor_state
+
+firstsecurity:
+  name: 'First Floor'
+  entities:
+    - binary_sensor.entry_door_template
+    - binary_sensor.back_door_template
+    - binary_sensor.fr_motion_template
+    - binary_sensor.lr_motion_template
+
+powerlevels:
+  name: 'Device Power Levels'
+  entities:
+    - sensor.entry_door_battery
+    - sensor.back_door_battery
+    - sensor.fr_motion_battery
+    - sensor.lr_motion_battery
+    - sensor.basement_leak_sensor_battery

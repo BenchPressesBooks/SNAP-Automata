@@ -1,0 +1,75 @@
+##########################################################
+#  Alert If Any Doors Are Opened
+##########################################################
+- alias: 'Door Opened Alert'
+  trigger:
+    - platform: state
+      entity_id:
+        - binary_sensor.entry_door_sensor_5
+        - binary_sensor.back_door_sensor_18
+        - binary_sensor.garagedoor_state
+      to: 'on'
+  condition:
+    - condition: state
+      entity_id: input_boolean.mode_away
+      state: 'on'
+  action:
+    - service: notify.pb_notify
+      data_template:
+        title: "URGENT: Security System Triggered"
+        message: 'Be aware that at {{now().strftime("%-H:%M")}} the {{ trigger.to_state.attributes.friendly_name }} was tripped setting off the alarm.'
+    - service: homeassistant.turn_on
+      entity_id:
+        - light.lrsidelamp
+        - input_boolean.auto_lrsidelamp
+
+##########################################################
+#  Alert If Any Doors Are Closed
+##########################################################
+- alias: 'Door Closed Alert'
+  trigger:
+    - platform: state
+      entity_id:
+        - binary_sensor.entry_door_sensor_5
+        - binary_sensor.back_door_sensor_18
+        - binary_sensor.garagedoor_state
+      to: 'off'
+  condition:
+    condition: state
+    entity_id: input_boolean.mode_away
+    state: 'on'
+  action:
+    - service: notify.pb_notify
+      data_template:
+        title: "NOTICE: Security State Reverted"
+        message: 'Be aware that at {{now().strftime("%-H:%M")}} the {{ trigger.to_state.attributes.friendly_name }} was reset silencing the alarm.'
+
+##########################################################
+#  Alert If Motion Sensors Trip
+##########################################################
+- alias: 'Motion Sensor Alert'
+  trigger:
+    - platform: state
+      entity_id:
+        - binary_sensor.lr_motion_sensor_9
+        - binary_sensor.fr_motion_sensor_11
+      to: 'on'
+  condition:
+    condition: and
+    conditions:
+      - condition: state
+        entity_id: input_boolean.mode_away
+        state: 'on'
+      - condition: template
+        value_template: '{{ (as_timestamp(now()) - as_timestamp(states.automation.motion_sensor_alert.attributes.last_triggered | default(0)) | int > 300)}}'
+  action:
+    - service: notify.pb_notify
+      data_template:
+        title: "URGENT: Security System Triggered"
+        message: 'Be aware that at {{now().strftime("%-H:%M")}} the {{ trigger.to_state.attributes.friendly_name }} was tripped setting off the alarm.'
+    - service: homeassistant.turn_on
+      entity_id:
+        - light.lrsidelamp
+        - input_boolean.auto_lrsidelamp
+        - switch.fr_partition_outlet_14
+        - input_boolean.auto_frsidelamp

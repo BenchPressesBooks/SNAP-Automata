@@ -1,0 +1,18 @@
+##########################################################
+#  Turn On Date Mode
+##########################################################
+- alias: 'Turn on date mode'
+  trigger:
+    - platform: state
+      entity_id: input_boolean.mode_date
+      from: 'off'
+      to: 'on'
+  action:
+    - service: homeassistant.turn_on
+      entity_id:
+        - switch.mbrsurgestrip
+        - light.lrsidelamp
+        - light.lrdisplaycase
+        - light.plrear
+        - light.porchlights
+        - light.officedisplaycase

@@ -1,0 +1,5 @@
+fr_main_light_slider:
+  initial: 100
+  min: 0
+  max: 100
+  step: 1

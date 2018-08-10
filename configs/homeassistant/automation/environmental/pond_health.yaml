@@ -1,0 +1,91 @@
+##########################################################
+#  Turn On Pond Filter After Rain Stops
+##########################################################
+- alias: "Clean pond after rain"
+  trigger:
+    - platform: state
+      entity_id:
+        - sensor.dark_sky_icon
+      from: 'rain'
+  condition:
+    condition: and
+    conditions:
+      - condition: state
+        entity_id: sun.sun
+        state: 'above_horizon'
+      - condition: state
+        entity_id: switch.waterfallpump
+        state: 'off'
+      - condition: numeric_state
+        entity_id: sensor.dark_sky_temperature
+        above: 45
+      - condition: template
+        value_template: '{{ (as_timestamp(now()) - as_timestamp(states.automation.clean_pond_after_rain.attributes.last_triggered | default(0)) | int > 3600)}}'
+  action:
+    - service: homeassistant.turn_on
+      entity_id:
+        - input_boolean.auto_waterfallpump
+        - switch.waterfallpump
+
+##########################################################
+#  Turn On Pond Filter If not run today
+##########################################################
+- alias: "Clean pond if not run today"
+  trigger:
+    - platform: time
+      at: '18:00'
+  condition:
+    condition: and
+    conditions:
+      - condition: state
+        entity_id: sun.sun
+        state: 'above_horizon'
+      - condition: state
+        entity_id: switch.waterfallpump
+        state: 'off'
+        for:
+          hours: 18
+      - condition: numeric_state
+        entity_id: sensor.dark_sky_temperature
+        above: 45
+  action:
+    - service: homeassistant.turn_on
+      entity_id:
+        - input_boolean.auto_waterfallpump
+        - switch.waterfallpump
+
+##########################################################
+#  Turn Off Pond Filter After Cleaning Cycle
+##########################################################
+- alias: 'Pond cleaning complete'
+  trigger:
+    - platform: state
+      entity_id: switch.waterfallpump
+      to: 'on'
+      for:
+        minutes: 30
+  condition:
+    - condition: state
+      entity_id: input_boolean.auto_waterfallpump
+      state: 'on'
+  action:
+    - service: homeassistant.turn_off
+      entity_id:
+        - input_boolean.auto_waterfallpump
+        - switch.waterfallpump
+
+##########################################################
+#  Turn Off Pond Filter After Max Enjoyment
+##########################################################
+- alias: 'Pond off after time'
+  trigger:
+    - platform: state
+      entity_id: switch.waterfallpump
+      to: 'on'
+      for:
+        hours: 1
+  action:
+    - service: homeassistant.turn_off
+      entity_id:
+        - input_boolean.auto_waterfallpump
+        - switch.waterfallpump

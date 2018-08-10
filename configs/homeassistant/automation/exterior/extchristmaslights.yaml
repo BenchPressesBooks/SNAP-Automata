@@ -1,0 +1,25 @@
+##########################################################
+#  Turn On Christmas Lights at Sunset
+##########################################################
+- alias: 'Turn on christmas lights at sunset'
+  trigger:
+    - platform: sun
+      event: sunset
+      offset: '-00:30:00'
+  action:
+    - service: homeassistant.turn_on
+      entity_id:
+        - switch.extchristmaslights
+
+##########################################################
+#  Turn Off Christmas Lights At 2300 Hours
+##########################################################
+- alias: 'Turn off christmas lights at 2300 hours'
+  trigger:
+    - platform: time
+      at: '23:00:00'
+  action:
+    - service: homeassistant.turn_off
+      entity_id:
+        - switch.extchristmaslights
+

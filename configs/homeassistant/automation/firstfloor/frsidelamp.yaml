@@ -1,0 +1,72 @@
+##########################################################
+#  Turn On Family Room Side Lamp With Motion or Entry
+##########################################################
+- alias: 'Turn on fr lamp after dark if motion or entry'
+  trigger:
+    - platform: state
+      entity_id:
+        - binary_sensor.fr_motion_sensor_11
+        - binary_sensor.back_door_sensor_18
+      to: 'on'
+  condition:
+    condition: and
+    conditions:
+      - condition: or
+        conditions:
+          - condition: state
+            entity_id: sun.sun
+            state: 'below_horizon'
+          - condition: state
+            entity_id: sensor.dark_sky_icon
+            state: 'rain'
+      - condition: state
+        entity_id: switch.fr_partition_outlet_14
+        state: 'off'
+      - condition: state
+        entity_id: input_boolean.mode_away
+        state: 'off'
+  action:
+    - service: homeassistant.turn_on
+      entity_id:
+        - switch.fr_partition_outlet_14
+        - input_boolean.auto_frsidelamp
+
+##########################################################
+#  Turn Off Family Room Side Lamp Before Bed
+##########################################################
+- alias: 'Turn off family room side lamp at 2300 hours'
+  trigger:
+    - platform: time
+      at: '23:00:00'
+  action:
+    - service: homeassistant.turn_off
+      entity_id:
+        - switch.fr_partition_outlet_14
+
+##########################################################
+#  Turn Off Family Room Side Lamp With No Motion
+##########################################################
+- alias: 'Turn off fr lamp after no motion'
+  trigger:
+    - platform: state
+      entity_id:
+        - binary_sensor.fr_motion_sensor_11
+      to: 'off'
+      for:
+         minutes: 5
+  condition:
+    condition: and
+    conditions:
+      - condition: state
+        entity_id: input_boolean.auto_frsidelamp
+        state: 'on'
+      - condition: state
+        entity_id: switch.fr_partition_outlet_14
+        state: 'on'
+#      - condition: template
+#        value_template: "{% if not is_state('sensor.dark_sky_icon', 'rain') %}true{% endif %}"
+  action:
+    - service: homeassistant.turn_off
+      entity_id:
+        - switch.fr_partition_outlet_14
+        - input_boolean.auto_frsidelamp

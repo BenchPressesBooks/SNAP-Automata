@@ -1,0 +1,8 @@
+######################################################
+#  Roku Media player Controls
+######################################################
+- platform: roku
+  host: !secret roku-mbr
+
+- platform: roku
+  host: !secret roku-gbr

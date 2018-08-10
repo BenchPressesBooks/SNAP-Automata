@@ -1,3 +1,6 @@
 ######################################################
-#  Logbook configuration
+#  History configuration
 ######################################################
+  exclude:
+    domains:
+      - automation

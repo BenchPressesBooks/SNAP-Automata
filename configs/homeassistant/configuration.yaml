@@ -11,70 +11,88 @@ homeassistant:
   name: !secret hass_name
   customize: !include customize.yaml
 
-# Enables the frontend
-frontend:
-  #themes: !include themes/dark_cyan.yaml
-  themes: !include themes/dark_red.yaml
-  #themes: !include themes/dark_orange.yaml
+  auth_providers:
+   - type: homeassistant
+   # Uncomment to enable legacy API password support
+   # - type: legacy_api_password    
+
+# Enable authentication UI
+auth:
 
 # Enables configuration UI
 config:
 
-http:
-  api_password: !secret hass_password
-  trusted_networks:
-    - 127.0.0.1
-    - ::1
-    - 10.0.1.0/24
-    - 10.0.10.0/24
-  ip_ban_enabled: True
-  login_attempts_threshold: 5
+# Enables the frontend and includes available themes
+frontend:
+  themes: !include_dir_merge_named themes
 
+# Configuration for the web UI
+http:
+  #api_password: !secret hass_password
+  server_host: !secret serv_address
+  server_port: !secret serv_port
+  ip_ban_enabled: true
+  login_attempts_threshold: 3
+  base_url: !secret serv_baseurl
+  use_x_forwarded_for: true
+  trusted_proxies:
+    - !secret proxy_ip
+  cors_allowed_origins:
+    - !secret cors_fqdn_1
 
 # Checks for available updates
-# https://home-assistant.io/blog/2016/10/25/explaining-the-updater/
 updater:
   include_used_components: false
   reporting: false
 
 # Discover some devices automatically
-# discovery:
+#discovery:
 
 # Allows you to issue voice commands from the frontend in enabled browsers
-# conversation:
-
-# Enables support for tracking state changes over time
-history:
-
-# Logbook of events customized and log level configuration
-logbook: !include logbook.yaml
-logger: !include logger.yaml
+conversation:
 
 # Track the sun
 sun:
+
+# Logging and display of events
+recorder: !include recorder.yaml
+history: !include history.yaml
+logbook: !include logbook.yaml
+
+# HASS system log level configuration
+logger: !include logger.yaml
+
+# Let homeassistant know about the local MQTT broker and client
+mqtt:
+  broker: !secret mqtt_serverip
+  port: !secret mqtt_serverport
+  client_id: !secret mqtt_clientid
+  username: !secret mqtt_user
+  password: !secret mqtt_password
+
+# Let homeassistant know about the Vera smart controller
+vera:
+  vera_controller_url: !secret vera_url
+  # Keep the sensor list clean and exclude system devices
+  exclude: [ 199, 299]
 
 # Text to speech
 # tts:
 #   - platform: google
 
-# Let homeassistant know about the local MQTT broker and client
-mqtt:
-  broker: 'localhost'
-  port: 1883
-  client_id: !secret mqtt_clientid
-  username: !secret mqtt_user
-  password: !secret mqtt_password
-
 ######################################################
 #  CONFIGURATION INCLUDES
 ######################################################
-
-automation: !include_dir_list automation
-binary_sensor: !include binary_sensor.yaml
+automation: !include_dir_merge_list automation
+binary_sensor: !include binary_sensors.yaml
+climate: !include climate.yaml
 input_boolean: !include input_boolean.yaml
+input_number: !include input_number.yaml
+google_assistant: !include gass.yaml
 group: !include groups.yaml
 light: !include lights.yaml
+media_player: !include mediaplayer.yaml
 notify: !include notify.yaml
 script: !include scripts.yaml
 sensor: !include sensors.yaml
-switch: !include switch.yaml
+switch: !include switches.yaml

@@ -1,0 +1,42 @@
+- alias: 'Main Water Status Change'
+  trigger:
+    - platform: state
+      entity_id:
+        - switch.main_water_shutoff_12
+  condition:
+    - condition: template
+      value_template: '{{ (as_timestamp(now()) - as_timestamp(states.automation.water_presence_detected.attributes.last_triggered | default(0)) | int > 10)}}'    
+  action:
+    - service: notify.pb_notify
+      data_template:
+        title: "NOTICE: Water Main Status Changed"
+        message: 'Be aware that at {{now().strftime("%-H:%M")}} the water main was turned {{ states("switch.main_water_shutoff_12") }}.'
+
+- alias: 'Water Presence Detected'
+  trigger:
+    - platform: state
+      entity_id:
+        - binary_sensor.basement_leak_sensor_16
+      to: 'on'
+  action:
+    - service: notify.pb_notify
+      data_template:
+        title: "WARNING: Water Presence Detected!"
+        message: 'Be aware that at {{now().strftime("%-H:%M")}} the water main and HVAC was turned off due to the presence of water being detected.'
+    - service: persistent_notification.create
+      data_template:
+        title: Water Presence Detected
+        message: 'WARNING! On {{now().strftime("%a, %b %e at %R")}} water was detected in the basement. The home water main and HVAC system were disabled.'
+        notification_id: water-presence-alert
+    - service: climate.set_fan_mode
+      data:
+        entity_id: climate.thermostat770ca7
+        fan_mode: 'auto'
+    - service: climate.set_operation_mode
+      data:
+        entity_id: climate.thermostat770ca7
+        operation_mode: 'off'
+    - delay: '00:00:03'
+    - service: homeassistant.turn_off
+      entity_id:
+        - switch.main_water_shutoff_12

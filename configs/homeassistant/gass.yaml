@@ -1,0 +1,150 @@
+# Google Home support
+project_id: !secret gh_projectid
+client_id: !secret gh_clientid
+access_token: !secret gh_accesstoken
+api_key: !secret gh_apikey
+expose_by_default: false
+exposed_domains:
+  - light
+  - climate
+entity_config:
+# Whole House Entities
+  input_boolean.mode_date:
+    name: Date Mode
+    expose: true
+    room: House All
+  input_boolean.mode_guest:
+    name: Guest Mode
+    expose: true
+    aliases:
+      - visitor mode
+      - vip mode
+    room: House All
+  climate.thermostat770ca7:
+    name: Thermostat
+    expose: true
+    aliases:
+      - climate control
+      - indoor climate
+    room: House All
+# Basement Entities
+  script.toggle_garage_door:
+    name: Toggle Garage Door
+    expose: true
+    aliases:
+      - garage door
+      - spray booth
+      - police hideaway
+      - garage door opener
+    room: Garage
+# First Floor Entities
+  switch.fr_partition_outlet_14:
+    name: Family Room Outlet
+    expose: true
+    aliases:
+      - partition wall outlet
+      - family room lamp
+      - family room side lamp
+      - addition knee wall outlet
+    room: Family Room
+  light.fr_main_lights_17:
+    name: Family Room Can Lights
+    expose: true
+    aliases:
+      - family room main lights
+      - family room lights
+      - back room lights
+      - back room main lights
+      - addition lights
+    room: Family Room
+  light.lrdisplaycase:
+    name: Living Room Display Case
+    expose: true
+    aliases:
+      - earth sciences display case
+      - rock cabinet lights
+      - mineral cabinet lights
+      - geo display lights
+    room: Living Room
+  light.lrsidelamp:
+    name: Living Room Side Lamp
+    expose: true
+    aliases:
+      - living room lamp
+    room: Living Room
+# Second Floor Entities
+  switch.mbrsurgestrip:
+    name: Master Bed Outlet
+    expose: true
+    aliases:
+      - master bedroom surge protector
+      - master bedroom side lamp
+      - master bed surge protector
+      - master bed heater
+    room: Master Bedroom
+  switch.master_bed_outlet_19:
+    name: Master Bedroom Closet Wall Outlet
+    expose: true
+    aliases:
+      - fish tank light
+      - closet wall outlet
+    room: Master Bedroom
+  switch.gbrsurgestrip:
+    name: Guest Bed Outlet
+    expose: true
+    aliases:
+      - guest bedroom surge protector
+      - guest bedroom side lamp
+      - guest bed surge protector
+      - guest bed heater
+    room: Guest Room
+  light.officedisplaycase:
+    name: Office Display Case
+    expose: true
+    aliases:
+      - war room display
+      - military collection lights
+      - military collection display case
+    room: Office
+# Outside entities
+  switch.waterfallpump:
+    name: Waterfall Pump
+    expose: true
+    aliases:
+      - pond waterfall
+      - waterfall
+      - pond filter
+      - fish blender
+    room: Outside
+  light.plfront:
+    name: Front Path Lights
+    expose: true
+    aliases:
+      - zone 1 lights
+      - front lighting
+    room: Outside
+  light.plside:
+    name: Side Path Lights
+    expose: true
+    aliases:
+      - zone 2 lights
+      - side lighting
+    room: Outside
+  light.plrear:
+    name: Rear Path Lights
+    expose: true
+    aliases:
+      - pond lights
+      - zone 3 lights
+      - pond ambiance lights
+      - fish burners
+      - fish sun
+    room: Outside
+  light.porchlights:
+    name: Porch Ambiance Lights
+    expose: true
+    aliases:
+      - porch lights
+      - back porch lights
+      - party lights
+    room: Outside

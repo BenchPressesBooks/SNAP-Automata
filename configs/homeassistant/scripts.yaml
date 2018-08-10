@@ -2,4 +2,20 @@ toggle_garage_door:
   sequence:
     - service: switch.toggle
       data:
-        entity_id: switch.garagedoor_command
+        entity_id:
+          - switch.garagedoor_command
+
+# Proof of concept that can be used when siren and or strobe is eventually ordered
+#sound_security_alarm:
+#  sequence:
+#    - service: homeassistant.turn_on
+#      data:
+#        entity_id:
+#          - input_boolean.security_alarm
+#    - delay:
+#        # How long should the alarm run for
+#        seconds: 30
+#    - service: homeassistant.turn_off
+#      data:
+#        entity_id:
+#          - input_boolean.security_alarm

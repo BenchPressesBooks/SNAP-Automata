@@ -1,0 +1,122 @@
+######################################################
+#  Binary Sensors
+######################################################
+
+# Garage Door Position Status
+- platform: mqtt
+  name: 'garagedoor_state'
+  state_topic: 'basement/garagedoor/status'
+  payload_on: "ON"
+  payload_off: "OFF"
+  device_class: opening
+
+######################################################
+#  Network Devices
+######################################################
+- platform: ping
+  host: !secret skynet_rt
+  name: Skynet_RT
+  count: 2
+
+- platform: ping
+  host: !secret skynet_sw1
+  name: Skynet_SW1
+  count: 2
+
+- platform: ping
+  host: !secret skynet_sw2
+  name: Skynet_SW2
+  count: 2
+
+- platform: ping
+  host: !secret skynet_ap1
+  name: Skynet_AP1
+  count: 2
+
+- platform: ping
+  host: !secret skynet_ap2
+  name: Skynet_AP2
+  count: 2
+
+- platform: ping
+  host: !secret skynet_aap
+  name: Skynet_AAP
+  count: 2
+
+- platform: ping
+  host: !secret skynet_cluster
+  name: Skynet_Cluster
+  count: 2
+
+- platform: ping
+  host: !secret skynet_vcluster
+  name: Skynet_VCluster
+  count: 2
+
+- platform: ping
+  host: !secret skynet_serv
+  name: Skynet_Serv
+  count: 2
+
+- platform: ping
+  host: !secret printer_clp315w
+  name: Printer_CLP315w
+  count: 2
+
+- platform: ping
+  host: !secret fullforce
+  name: FullForce
+  count: 2
+
+######################################################
+#  Scripted Checks
+######################################################
+- platform: command_line
+  name: WAN
+  command: "/home/homeassistant/.homeassistant/scripts/wan_test.sh"
+  device_class: connectivity
+  payload_on: "Up"
+  payload_off: "Down"
+
+######################################################
+#  Z-Wave Templated Devices
+######################################################
+
+- platform: template
+  sensors:
+    fr_motion_template:
+      device_class: motion
+      value_template: >
+        {{ is_state('binary_sensor.fr_motion_sensor_11', 'on') }}
+
+    lr_motion_template:
+      device_class: motion
+      value_template: >
+        {{ is_state('binary_sensor.lr_motion_sensor_9', 'on') }}
+
+    entry_door_template:
+      device_class: opening
+      value_template: >
+        {{ is_state('binary_sensor.entry_door_sensor_5', 'on') }}
+      icon_template: >
+        {% if states('binary_sensor.entry_door_sensor_5') == 'on' %}
+          mdi:door-open
+        {% else %}
+          mdi:door
+        {% endif %}
+
+    back_door_template:
+      device_class: opening
+      value_template: >
+        {{ is_state('binary_sensor.back_door_sensor_18', 'on') }}
+      icon_template: >
+        {% if states('binary_sensor.back_door_sensor_18') == 'on' %}
+          mdi:door-open
+        {% else %}
+          mdi:door
+        {% endif %}
+
+    basement_leak_sensor_template:
+      device_class: moisture
+      value_template: >
+        {{ is_state('binary_sensor.basement_leak_sensor_16', 'on') }}

@@ -39,3 +39,10 @@
 # Misc
 *.db
 *.log
+
+# Prevent syncing of working dirs and sensitive files
+secrets.yaml
+entity_registry.yaml
+ip_bans.yaml
+deps
+tts

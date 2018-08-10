@@ -1,0 +1,30 @@
+##########################################################
+#  Turn On Guest Mode
+##########################################################
+- alias: 'Turn on guest mode'
+  trigger:
+    - platform: state
+      entity_id: input_boolean.mode_guest
+      from: 'off'
+      to: 'on'
+  action:
+    - service: homeassistant.turn_on
+      entity_id:
+        - switch.gbrsurgestrip
+        - light.lrsidelamp
+        - light.lrdisplaycase
+        - light.officedisplaycase
+
+##########################################################
+#  Turn Off Guest Mode
+##########################################################
+- alias: 'Turn off guest mode'
+  trigger:
+    - platform: state
+      entity_id: input_boolean.mode_guest
+      from: 'on'
+      to: 'off'
+  action:
+    - service: homeassistant.turn_off
+      entity_id:
+        - switch.gbrsurgestrip

@@ -1,14 +1,13 @@
 ##########################################################
 #  New version of HASS
 ##########################################################
-alias: 'Notification - New Version of Home Assistant'
-trigger:
-  - platform: state
-    entity_id:
-      - updater.updater
-action:
-  - service: notify.pb_notify
-    data_template:
-      title: "INFO: Home Assistant New Release"
-      message: "Home Assistant {{ states.updater.updater.state }} is now available."
-
+- alias: 'Notification - New Version of Home Assistant'
+  trigger:
+    - platform: state
+      entity_id:
+        - updater.updater
+  action:
+    - service: notify.pb_notify
+      data_template:
+        title: "INFO: Home Assistant New Release"
+        message: "Home Assistant {{ states.updater.updater.state }} is now available."

@@ -1,0 +1,41 @@
+##########################################################
+#  Turn On Path Lights During Rain If Not On
+##########################################################
+- alias: "Light path during rain"
+  trigger:
+    - platform: state
+      entity_id: sensor.dark_sky_icon
+      to: 'rain'
+  condition:
+    - condition: state
+      entity_id: sun.sun
+      state: 'above_horizon'
+    - condition: state
+      entity_id: light.plfront
+      state: 'off'
+  action:
+    - service: homeassistant.turn_on
+      entity_id:
+        - light.plfront
+        - input_boolean.auto_plfront
+
+##########################################################
+#  Turn Off Path Lights After Rain
+##########################################################
+- alias: "Dont need to see after rain is over"
+  trigger:
+    - platform: state
+      entity_id: sensor.dark_sky_icon
+      from:  'rain'
+  condition:
+    - condition: state
+      entity_id: sun.sun
+      state: 'above_horizon'
+    - condition: state
+      entity_id: input_boolean.auto_plfront
+      state: 'on'
+  action:
+    - service: homeassistant.turn_off
+      entity_id:
+        - light.plfront
+        - input_boolean.auto_plfront
